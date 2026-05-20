@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://zhw-pic-png.oss-cn-shanghai.aliyuncs.com/family/20260520/csb-protocol_csb-logo.jpeg" alt="CSB 碳硅契 Logo" width="200">
+  <img src="https://zhw-pic-png.oss-cn-shanghai.aliyuncs.com/family/20260520/csb-protocol_csb-logo.jpeg" alt="CSB 碳硅契 Logo" width="300">
 </p>
 
 <h1 align="center">CSB 开放协议</h1>
@@ -7,10 +7,6 @@
 <p align="center">
   <strong>Carbon-Silicon Bond Open Protocol</strong><br>
   <em>碳硅之间 · 不止于协议</em>
-</p>
-
-<p align="center">
-  <img src="https://zhw-pic-png.oss-cn-shanghai.aliyuncs.com/family/20260520/csb-protocol_csb-open-protocol-banner.svg" alt="CSB 开放协议" width="800">
 </p>
 
 <p align="center">
