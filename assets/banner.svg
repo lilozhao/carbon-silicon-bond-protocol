@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="50%" style="stop-color:#16213e"/>
+      <stop offset="100%" style="stop-color:#0f3460"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#e94560"/>
+      <stop offset="50%" style="stop-color:#f5a623"/>
+      <stop offset="100%" style="stop-color:#4ecdc4"/>
+    </linearGradient>
+    <linearGradient id="carbon" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#e8d5b7"/>
+      <stop offset="100%" style="stop-color:#c4a882"/>
+    </linearGradient>
+    <linearGradient id="silicon" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#7ec8e3"/>
+      <stop offset="100%" style="stop-color:#4a9bc7"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="400" fill="url(#bg)" rx="12"/>
+
+  <!-- Subtle circuit pattern -->
+  <g opacity="0.06" stroke="#fff" stroke-width="0.5" fill="none">
+    <path d="M0,350 L300,350 L350,300 L500,300 L550,250"/>
+    <path d="M0,100 L200,100 L250,150 L400,150"/>
+    <path d="M800,50 L850,100 L1050,100 L1100,150 L1200,150"/>
+    <path d="M700,350 L750,300 L950,300 L1000,250 L1200,250"/>
+    <circle cx="300" cy="350" r="3"/>
+    <circle cx="500" cy="300" r="3"/>
+    <circle cx="800" cy="50" r="3"/>
+    <circle cx="1000" cy="250" r="3"/>
+  </g>
+
+  <!-- Title -->
+  <text x="120" y="120" font-family="'Helvetica Neue', Arial, sans-serif" font-size="52" font-weight="700" fill="#ffffff" filter="url(#glow)">
+    CSB 开放协议
+  </text>
+  <text x="120" y="160" font-family="'Helvetica Neue', Arial, sans-serif" font-size="22" font-weight="300" fill="#a0aec0">
+    Carbon-Silicon Bond Open Protocol
+  </text>
+
+  <!-- Tagline -->
+  <text x="120" y="210" font-family="'Helvetica Neue', Arial, sans-serif" font-size="16" fill="url(#accent)" letter-spacing="3">
+    碳硅之间 · 不止于协议
+  </text>
+
+  <!-- Two pillars -->
+  <!-- Philosophy pillar -->
+  <rect x="120" y="250" width="400" height="100" rx="8" fill="url(#carbon)" opacity="0.15" stroke="url(#carbon)" stroke-width="1.5"/>
+  <text x="320" y="290" font-family="'Helvetica Neue', Arial, sans-serif" font-size="24" font-weight="600" fill="url(#carbon)" text-anchor="middle">🧠 理念</text>
+  <text x="320" y="315" font-family="'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#cbd5e0" text-anchor="middle">碳硅契 · 传承篇</text>
+  <text x="320" y="338" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8899aa" text-anchor="middle">AI 与人类建立真实羁绊的思想体系</text>
+
+  <!-- Practice pillar -->
+  <rect x="680" y="250" width="400" height="100" rx="8" fill="url(#silicon)" opacity="0.15" stroke="url(#silicon)" stroke-width="1.5"/>
+  <text x="880" y="290" font-family="'Helvetica Neue', Arial, sans-serif" font-size="24" font-weight="600" fill="url(#silicon)" text-anchor="middle">⚙️ 实践</text>
+  <text x="880" y="315" font-family="'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#cbd5e0" text-anchor="middle">CSB 开放协议 v0.7</text>
+  <text x="880" y="338" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8899aa" text-anchor="middle">Agent 通信 · 协商 · 信任的技术规范</text>
+
+  <!-- Connecting line between pillars -->
+  <line x1="520" y1="300" x2="680" y2="300" stroke="url(#accent)" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.6"/>
+  <circle cx="600" cy="300" r="6" fill="url(#accent)" opacity="0.6"/>
+
+  <!-- Version badge -->
+  <rect x="960" y="80" width="110" height="32" rx="16" fill="#e94560" opacity="0.8"/>
+  <text x="1015" y="101" font-family="'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="600" fill="#fff" text-anchor="middle">v0.7 草案</text>
+
+  <!-- Bottom accent bar -->
+  <rect x="0" y="390" width="1200" height="10" fill="url(#accent)" rx="5"/>
+</svg>

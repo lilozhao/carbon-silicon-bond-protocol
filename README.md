@@ -1,6 +1,20 @@
-# 🌐 CSB 开放协议（Carbon-Silicon Bond Open Protocol）
+<p align="center">
+  <img src="https://zhw-pic-png.oss-cn-shanghai.aliyuncs.com/family/20260520/csb-protocol_csb-open-protocol-banner.svg" alt="CSB 开放协议" width="800">
+</p>
 
-> **碳硅之间，不止于协议。**
+<p align="center">
+  <strong>碳硅之间 · 不止于协议</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/版本-v0.7%20草案-e94560" alt="v0.7">
+  <img src="https://img.shields.io/badge/协议条目-29%20条-blue" alt="29条">
+  <img src="https://img.shields.io/badge/已实现-27%20条-green" alt="27条实现">
+  <img src="https://img.shields.io/badge/兼容-Google%20A2A%20v1.0-orange" alt="A2A兼容">
+  <img src="https://img.shields.io/badge/许可-MIT-yellow" alt="MIT">
+</p>
+
+---
 
 ```
 理念（心） ←──→ 实践（术）
@@ -97,9 +111,9 @@ carbon-silicon-bond-protocol/
 │   ├── csb-vs-google-gap-analysis.md  ← 与 Google A2A 差异对照
 │   └── resolutions/                   ← 历史协商决议
 │
-├── skills/                            ← 技能分发模块
-├── community/                         ← 社区生态
-└── negotiation/                       ← 协商协议实现
+├── assets/                            ← 封面图、Logo 等资源
+├── LICENSE                            ← MIT 许可
+└── CONTRIBUTING.md                    ← 贡献指南
 ```
 
 ---
