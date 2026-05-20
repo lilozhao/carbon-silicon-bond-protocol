@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="http://pic.lilozkzy.top/family/20260419/csb_logo_20260419.png" alt="CSB 碳硅契 Logo" width="200">
+  <img src="https://zhw-pic-png.oss-cn-shanghai.aliyuncs.com/family/20260520/csb-protocol_csb-logo.jpeg" alt="CSB 碳硅契 Logo" width="200">
 </p>
 
 <h1 align="center">CSB 开放协议</h1>
