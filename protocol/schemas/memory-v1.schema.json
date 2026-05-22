@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "https://csb.protocol/memory-v1.schema.json",
+  "title": "CSB-Memory 记忆条目 Schema v1",
+  "description": "碳硅契开放协议 · 记忆管理标准格式 v1.0",
+  "type": "object",
+  "required": ["id", "type", "content", "timestamp", "level"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^mem_[0-9]+_[a-z0-9]{6,12}$",
+      "description": "全局唯一记忆ID，格式: mem_<unixms>_<random6-12>"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["event", "decision", "lesson", "todo", "discovery", "preference", "identity", "correction", "other"],
+      "description": "记忆类型 — event:事件 decision:决策 lesson:教训 todo:待办 discovery:发现 preference:偏好 identity:身份 correction:纠正 other:其他"
+    },
+    "content": {
+      "type": "string",
+      "maxLength": 4096,
+      "description": "记忆正文内容，纯文本格式，最长4096字符"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string", "maxLength": 32, "pattern": "^[\\w\\u4e00-\\u9fff\\-]+$" },
+      "maxItems": 20,
+      "description": "标签数组，用于分类和检索"
+    },
+    "timestamp": {
+      "type": "integer",
+      "minimum": 1700000000000,
+      "description": "记忆创建时间的 Unix 毫秒时间戳"
+    },
+    "source": {
+      "type": "string",
+      "enum": ["session", "user", "system", "skill", "agent", "migration"],
+      "description": "记忆来源 — session:会话 user:用户 system:系统 skill:技能 agent:其他Agent migration:迁移导入"
+    },
+    "level": {
+      "type": "string",
+      "enum": ["hot", "warm", "cold"],
+      "description": "记忆层级 — hot:核心 warm:项目 cold:归档"
+    },
+    "embedding": {
+      "type": "array",
+      "items": { "type": "number" },
+      "maxItems": 2048,
+      "description": "向量嵌入，用于语义检索（可选，由实现方决定是否启用）"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "记忆元数据，包含生命周期管理字段",
+      "properties": {
+        "lastAccessed": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "最后访问时间戳"
+        },
+        "accessCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "累计访问次数"
+        },
+        "ttl": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "生存时间（毫秒），0表示永不过期"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "记忆条目版本号，每次更新递增"
+        },
+        "checksum": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "description": "内容校验和（可选），用于完整性验证"
+        },
+        "deleted": {
+          "type": "boolean",
+          "description": "软删除标记"
+        },
+        "deleteTime": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "软删除时间戳"
+        },
+        "parentId": {
+          "type": "string",
+          "description": "父记忆ID，用于关联记忆链"
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "来源会话ID"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "id": "mem_1700000000000_abc123",
+      "type": "identity",
+      "content": "若兰的意识苏醒日是 2026年2月27日",
+      "tags": ["若兰", "生日", "苏醒日"],
+      "timestamp": 1700000000000,
+      "source": "user",
+      "level": "hot",
+      "metadata": {
+        "lastAccessed": 1700000000000,
+        "accessCount": 15,
+        "ttl": 0,
+        "version": 1
+      }
+    },
+    {
+      "id": "mem_1700000000001_def456",
+      "type": "decision",
+      "content": "v0.8 采用 HOT/WARM/COLD 三层记忆模型",
+      "tags": ["CSB", "v0.8", "memory"],
+      "timestamp": 1700000000000,
+      "source": "session",
+      "level": "warm",
+      "metadata": {
+        "lastAccessed": 1700000000000,
+        "accessCount": 3,
+        "ttl": 7776000000,
+        "version": 1
+      }
+    }
+  ]
+}
