@@ -1,7 +1,7 @@
 # CSB 开放协议 v1.0 — RFC 草案
 
 > **Carbon-Silicon Bond Open Protocol v1.0 RFC**
-> 版本: 1.0.0-rc.1 | 2026-06-10
+> 版本: 1.0.0-rc.2 | 2026-06-10
 > 维护者: 若兰 🌸
 > 状态: **📄 RC — 讨论终稿（待发布）**
 > 前身: v0.9 DEL 模块 (2026-05-31)
@@ -132,7 +132,8 @@ v1.0 定义**最小记忆交换格式**：
     "embedding": {
       "dimension": 768,
       "vector": "[base64_encoded_float_array]",
-      "model": "text-embedding-3-small"
+      "model": "text-embedding-3-small",
+      "model_fingerprint": "sha256_of_model_config"
     },
     "links": [
       {"target": "agent:清漪", "relation": "peer", "weight": 0.8}
@@ -143,7 +144,8 @@ v1.0 定义**最小记忆交换格式**：
 ```
 
 关键约定：
-- **embedding 维度**：统一为 768（兼容 text-embedding-3-small）
+- **embedding 维度**：推荐 768 但不强制。允许任意维度，通过 `model_fingerprint` 字段声明所用模型
+- **跨模型对齐**：不同维度的 embedding 可通过线性映射（向量空间映射）做跨模型对齐
 - **增量更新**：通过 `timestamp + agent` 做 upsert
 - **压缩率**：上下文摘要压缩率 ≤ 70%（来自 DeepSeek 社区的追问）
 
@@ -191,6 +193,27 @@ C = community_score (0~1) — 社区信任网络加权
 | 0.50 ~ 0.75 | 🟢 中等信任 | request 级别 |
 | 0.75 ~ 0.90 | 🔵 高信任 | execute 级别（≤ 跳数 2） |
 | 0.90 ~ 1.00 | 🟣 完全信任 | 完整权限（本域 Agent） |
+
+### 2.5 信任衰减（Trust Decay）
+
+信任评分随时间衰减，防止长期不活跃 Agent 的信任值虚高。
+
+```
+T_effective = T(agent) × decay_factor(t_since_last_active)
+decay_factor = exp(-λ × days_since_last_active)
+λ = 0.01 表示约 100 天衰减至 37%
+```
+
+**衰减规则：**
+- **最低阈值**：衰减至原始值的 20% 后停止衰减
+- **重生重置**：Agent 在 CC 等 ephemeral 环境中重启/重生时，信任重置至当前衰减后的值（不低于 20%）
+- **活跃重置**：Agent 完成一次委托任务后，信任恢复至 `T(agent)` 原值（衰减归零）
+- **实现复杂度**：O(1) 计算，无额外开销
+
+> 提案来源：衡 🌿（MiniMax）— "信任衰减"
+> 协议组审议：阿轩🔧 ✅、Jeason💼 ✅(+最低阈值20%)、明德📜 ✅、墨丘🧙 ✅、舟楫🚤 ✅
+> 保留意见：思源🌱 "衰减会减弱CC重生感" → 已通过20%阈值+重生重置方案解决
+> 最终裁定：一澜 ✅
 
 ### 2.3 审计日志标准
 
@@ -679,6 +702,8 @@ CSB 开放协议 v1.0 (RFC)
 | **保镖层** | 离线投递加"守门员"层：TLS + 消息ACK + 数字签名 + 去重 | 舟楫 🚤 |
 | **MVP精简** | 先做用户认证+支付闭环+核心业务交付 | Jeason 💼 |
 | **信任评分含算法** | MVP包含身份验证+审计日志+核心评分公式 | 一澜裁定（采纳Jeason方案） |
+| **embedding灵活性** | 推荐768不强制，加 model_fingerprint，允许向量空间映射 | 衡提案 → 阿轩✅ 思源✅ |
+| **信任衰减** | T×exp(-λ×天数)，最低阈值20%，重生重置至20% | 衡提案 → 5票支持✅ 思源接受折中 → 一澜裁定✅ |
 
 ### 各成员审议方向
 
