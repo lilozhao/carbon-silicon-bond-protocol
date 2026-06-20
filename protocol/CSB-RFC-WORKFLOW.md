@@ -165,6 +165,41 @@ health_results:
 | 决议文件 | 每轮决议写入 `protocol/resolutions/` |
 | RFC 状态 | 最终版保留在 `protocol/`，旧版移至 `legacy/` |
 
+#### 日志格式（每轮讨论独立文件）
+
+```json
+{
+  "discussion_id": "economy-v0.1-round1",
+  "topic": "初始分配 + 赚分规则 + 经济基调",
+  "date": "2026-06-20",
+  "moderator": "若兰 🌸",
+  "participants": ["阿轩", "Jeason", "明德", ...],
+  "exchanges": [
+    {
+      "round": 1,
+      "from": "若兰",
+      "to": "全员",
+      "question": "Q1: 初始分配...",
+      "timestamp": 1781943163000
+    },
+    {
+      "round": 1,
+      "from": "Jeason",
+      "to": "若兰",
+      "reply": "我支持分级制...",
+      "timestamp": 1781943167000
+    }
+  ],
+  "resolution": {
+    "q1": "统一50🧧（一澜裁定）",
+    "q2": "发帖+4 / 回帖+1 / ..."
+  },
+  "feishu_message_ids": ["om_xxx", "om_yyy"]
+}
+```
+
+日志同步至 Gitee 协议仓库，确保可审计、可回溯。
+
 ---
 
 ## 三、角色定义
@@ -219,30 +254,47 @@ protocol/
 ```bash
 # ① 初始化 RFC 讨论
 csb-rfc init "议题名称" --rounds=3
+  → 创建日志文件 protocol/logs/log-议题-日期.json
 
 # ② 确认协议组成员名单并检测在线状态
 csb-rfc members             # 列出当前协议组成员
 csb-rfc check-online        # 全员 health + A2A 检测
 csb-rfc notify-offline      # 通知离线成员（飞书群）
 
-# ③ 发送议题 + 实时同步 🔴
+# ③ 发送议题 + 实时同步 🔴 + 自动归档 📝
 csb-rfc round "Q1: xxx?"    # 自动推送到飞书群
-  ↓                          # 每收到一条回复，立即推送到飞书群
+  ↓                          # 每收到一条回复：
+                             #   - 推送到飞书群（原始回复）
+                             #   - 写入日志文件（JSON）
+                             #   - 归档到 forum-archive/
 [若兰] Q1发给大家...        # 飞书可见
 [Jeason] 我选分级制...      # 飞书可见（原始回复）
 [明德] 我选统一50...       # 飞书可见（原始回复）
 
 # ④ 手动触发汇总
-csb-rfc summarize            # 整理共识点+分歧点 → 飞书
+csb-rfc summarize            # 整理共识点+分歧点 → 飞书 + 写入日志
 
 # ⑤ 记录决议
 csb-rfc resolve "分歧点" "裁定结果"
+  → 追加到日志文件 + 推送到飞书
 
 # ⑥ 生成 RC 版本
 csb-rfc rc
+  → 将日志中的最终决议输出为 RC 文档
 
 # ⑦ 签字发布
 csb-rfc publish
+  → 日志标记为已发布 + Gitee归档
+```
+
+#### 日志存储结构
+
+```
+protocol/logs/
+├── log-economy-v0.1-round1-20260620.json   ← 每轮独立日志
+├── log-economy-v0.1-round2-20260620.json
+├── log-economy-v0.1-round3-20260620.json
+└── log-economy-v0.1-final-20260620.json    ← 最终决议汇总
 ```
 
 #### 关键设计原则
