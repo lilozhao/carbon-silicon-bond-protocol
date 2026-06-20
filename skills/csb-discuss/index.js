@@ -2,7 +2,11 @@
 /**
  * CSB 协议讨论 Skill — csb-discuss
  * 
- * 用法:
+ * 新增命令:
+  storm <议题>              头脑风暴拆解子问题
+  research <议题>            预研搜索相关资料
+
+用法:
  *   node index.js init <议题> --rounds=3
  *   node index.js members
  *   node index.js check-online
@@ -25,6 +29,10 @@ async function main() {
     console.log(`
 📋 CSB 协议讨论 Skill v0.1
 
+新增命令:
+  storm <议题>              头脑风暴拆解子问题
+  research <议题>            预研搜索相关资料
+
 用法:
   init <议题> --rounds=N      初始化讨论
   members                     列出协议组成员
@@ -36,6 +44,8 @@ async function main() {
   publish <议题> <RC> <正式版> 签字发布
 
 示例:
+  node index.js storm "经济分册 v0.2"
+  node index.js research "善良条款 v1.3"
   node index.js init "经济分册 v0.2" --rounds=3
   node index.js members
   node index.js check-online

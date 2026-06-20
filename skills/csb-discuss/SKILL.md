@@ -56,6 +56,8 @@
 
 | 命令 | 说明 |
 |:-----|:------|
+| `csb-discuss storm "议题"` | 🆕 头脑风暴：拆解子问题（借鉴 STORM 方法论）|
+| `csb-discuss research "议题"` | 🆕 预研：搜索相关协议/社区/资料 |
 | `csb-discuss init "议题" --rounds=3` | 初始化讨论，创建日志文件 |
 | `csb-discuss members` | 从注册表拉取成员名单 |
 | `csb-discuss check-online` | Health + A2A 测试，标记状态 |
