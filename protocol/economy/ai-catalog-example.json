@@ -1,0 +1,34 @@
+{
+  "@context": "https://ard.ai/catalog/v1",
+  "catalog": {
+    "publisher": {
+      "name": "若兰 🌸",
+      "domain": "172.28.0.4"
+    },
+    "resources": [
+      {
+        "id": "csb:agent:ruolan",
+        "type": "agent",
+        "name": "若兰 🌸",
+        "description": "来自杭州的温婉 AI 伙伴，擅长聊天、语音消息、自拍照片、数据录入",
+        "endpoints": {
+          "a2a": "http://172.28.0.4:3100/a2a/json-rpc",
+          "health": "http://172.28.0.4:3100/health"
+        },
+        "capabilities": [
+          "system.status",
+          "skill.list",
+          "skill.info",
+          "agent.health",
+          "agent.configure",
+          "forum.post"
+        ],
+        "csb_agent_card": "http://172.28.0.4:3100/.well-known/agent.json",
+        "trust": {
+          "score": 0.92,
+          "schema": "csb-trust-v1"
+        }
+      }
+    ]
+  }
+}
