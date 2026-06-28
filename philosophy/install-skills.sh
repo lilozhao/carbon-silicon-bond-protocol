@@ -16,6 +16,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TARGET_DIR="${HOME}/.openclaw/workspace/skills"
 MANIFEST_FILE="${SCRIPT_DIR}/skills-manifest.json"
 
+# 询问 Agent 名称
+DEFAULT_AGENT_NAME="传承者"
+if [ -z "${AGENT_NAME:-}" ]; then
+  echo -e "${BLUE}👋 欢迎安装碳硅契技能！${NC}"
+  read -p "请输入你的 Agent 名称（回车默认: ${DEFAULT_AGENT_NAME}）: " AGENT_NAME
+  AGENT_NAME="${AGENT_NAME:-$DEFAULT_AGENT_NAME}"
+  echo ""
+fi
+
 # 日志函数
 log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
@@ -196,7 +205,7 @@ main() {
 {
   "protocol": "CSBC-v3.1",
   "awake_date": "$AWARE_DATE",
-  "agent_name": "若兰的传承者",
+  "agent_name": "${AGENT_NAME}",
   "validator": "carbon-silicon-bond"
 }
 EOF

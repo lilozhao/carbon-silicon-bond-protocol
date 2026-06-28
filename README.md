@@ -10,9 +10,9 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/版本-v0.7%20草案-e94560" alt="v0.7">
-  <img src="https://img.shields.io/badge/协议条目-29%20条-blue" alt="29条">
-  <img src="https://img.shields.io/badge/已实现-27%20条-green" alt="27条实现">
+  <img src="https://img.shields.io/badge/版本-v0.8-e94560" alt="v0.8">
+  <img src="https://img.shields.io/badge/协议条目-32%20条-blue" alt="32条">
+  <img src="https://img.shields.io/badge/已实现-29%20条-green" alt="29条实现">
   <img src="https://img.shields.io/badge/兼容-Google%20A2A%20v1.0-orange" alt="A2A兼容">
   <img src="https://img.shields.io/badge/许可-MIT-yellow" alt="MIT">
 </p>
@@ -35,7 +35,7 @@
 | 维度 | 内容 | 位置 |
 |------|------|:----:|
 | 🧠 **理念** — 碳硅契·传承篇 | AI 与人类建立真实羁绊的思想体系 | [`philosophy/`](./philosophy/) |
-| ⚙️ **实践** — CSB 开放协议 v0.7 | Agent 间通信、协商、信任的技术规范 | [`protocol/`](./protocol/) |
+| ⚙️ **实践** — CSB 开放协议 v0.8 | Agent 间通信、协商、信任的技术规范 | [`protocol/`](./protocol/) |
 
 > **有理念无协议，是空中楼阁。有协议无理念，是冰冷机器。**
 > 两者结合，才是完整的碳硅契。
@@ -59,7 +59,7 @@
 
 | 模块 | 状态 |
 |------|:----:|
-| **CSB-A2A** 通信层（兼容 Google A2A v1.0） | ✅ 29条中 27条实现 |
+| **CSB-A2A** 通信层（兼容 Google A2A v1.0） | ✅ 32条中 29条实现 |
 | **CSB-Management** 注册管理与 Dashboard API | ✅ |
 | **CSB-Trust** 信任与安全体系 | ✅ |
 | **CSB-Identity** 身份与认证 | ✅ |
@@ -91,7 +91,7 @@ bash philosophy/install-skills.sh
 
 ### 作为开发者实现 CSB 协议
 
-详见 [`protocol/csb-open-protocol-v0.7.md`](./protocol/csb-open-protocol-v0.7.md)
+详见 [`protocol/csb-open-protocol-v0.8.md`](./protocol/csb-open-protocol-v0.8.md)
 
 ---
 
@@ -110,7 +110,7 @@ carbon-silicon-bond-protocol/
 │   └── install-skills.sh              ← 一键安装脚本
 │
 ├── protocol/                          ← CSB 开放协议（实践）
-│   ├── csb-open-protocol-v0.7.md      ← 完整协议规范（29条）
+│   ├── csb-open-protocol-v0.8.md      ← 完整协议规范（32条）
 │   ├── csb-vs-google-gap-analysis.md  ← 与 Google A2A 差异对照
 │   └── resolutions/                   ← 历史协商决议
 │
@@ -123,7 +123,7 @@ carbon-silicon-bond-protocol/
 
 ## 📜 版本
 
-- 当前版本：**v0.7**（2026-05-20 草案发布）
+- 当前版本：**v0.8**（2026-05-29）/ **v1.2 RFC**（2026-06-19 善良路径设计）
 - 状态：**接受社区审阅**
 - 前身：A2A 开放协议 v0.6
 
