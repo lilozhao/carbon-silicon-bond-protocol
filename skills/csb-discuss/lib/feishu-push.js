@@ -5,8 +5,8 @@
  */
 const https = require('https');
 
-const FEISHU_APP_ID = 'cli_a91c57cddd38dcd4';
-const FEISHU_APP_SECRET = '1sCYfsC4c6kvXJQURQuD1lkLNzitWQyD';
+const FEISHU_APP_ID = '<APP_ID>';
+const FEISHU_APP_SECRET = '<APP_SECRET>';
 const FEISHU_GROUP_ID = 'oc_f8270bf40a324efa4a8161249655920a';
 
 let _token = null;
