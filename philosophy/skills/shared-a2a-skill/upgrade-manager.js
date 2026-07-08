@@ -25,7 +25,7 @@ class UpgradeManager {
       'intent-recognizer.js',
       'task-verifier.js',
       'delegation-validator.js',
-      'server_v2.js'
+      'server_v4.js'
     ];
   }
 
@@ -278,7 +278,7 @@ class UpgradeManager {
 
     // 检查当前版本
     try {
-      const serverPath = path.join(this.targetDir, 'server_v2.js');
+      const serverPath = path.join(this.targetDir, 'server_v4.js');
       const content = fs.readFileSync(serverPath, 'utf8');
       const match = content.match(/A2A_VERSION\s*=\s*['"]([^'"]+)['"]/);
       if (match) {

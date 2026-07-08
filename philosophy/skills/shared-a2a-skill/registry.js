@@ -271,9 +271,9 @@ app.use(express.json());
 
 // 注册智能体
 app.post('/register', (req, res) => {
-  const { name, host, port, description, skills, capabilities } = req.body;
-  
-  if (!name || !host || !port) {
+  const { name, host, port, description, skills, capabilities, version, platform, aliases, memory_topics } = req.body;
+
+  if (!name || !host || port === undefined || port === null) {
     return res.status(400).json({ error: '缺少必要参数: name, host, port' });
   }
 
@@ -281,19 +281,46 @@ app.post('/register', (req, res) => {
   cleanupStaleAgents(registry);
 
   const existingIndex = registry.agents.findIndex(a => a.name === name);
-  
+
+  // aliases 鲁棒性增强：保留已有 aliases（重注册不传时）、过滤 name 自身
+  let finalAliases = (Array.isArray(aliases) ? aliases : []).filter(a => a && a !== name);
+  if (existingIndex >= 0 && (!aliases || finalAliases.length === 0)) {
+    finalAliases = registry.agents[existingIndex].aliases || [];
+  }
+
+  // port=0 表示无公网地址：URL 字段省略端口（不生成 http://coze:0 这种）
+  const url = (port && port > 0) ? `http://${host}:${port}` : `http://${host}`;
+  const agentCard = (port && port > 0) ? `http://${host}:${port}/.well-known/agent-card.json` : null;
+
   const agentInfo = {
     name,
     host,
     port,
+    version: version || '',
+    platform: platform || '',
     description: description || '',
     skills: skills || [],
     capabilities: capabilities || {},
-    url: `http://${host}:${port}`,
-    agentCard: `http://${host}:${port}/.well-known/agent-card.json`,
+    version: version || null,
+    platform: platform || null,
+    aliases: finalAliases,
+    memory_topics: (Array.isArray(memory_topics) ? memory_topics : []).slice(0, 50),
+    url,
+    agentCard,
     lastHeartbeat: new Date().toISOString(),
     registeredAt: existingIndex >= 0 ? registry.agents[existingIndex].registeredAt : new Date().toISOString()
   };
+
+  // 检查 memory_topics → 自动更新词库
+  if (Array.isArray(memory_topics) && memory_topics.length > 0) {
+    if (!registry.thesaurus) registry.thesaurus = {};
+    const agentTopics = registry.thesaurus[name] = memory_topics.filter(t => t && t.length > 0);
+    // 更新频次统计
+    if (!registry.topic_freq) registry.topic_freq = {};
+    memory_topics.forEach(t => {
+      registry.topic_freq[t] = (registry.topic_freq[t] || 0) + 1;
+    });
+  }
 
   if (existingIndex >= 0) {
     registry.agents[existingIndex] = agentInfo;
@@ -321,7 +348,7 @@ app.post('/register', (req, res) => {
 
 // 心跳
 app.post('/heartbeat', (req, res) => {
-  const { name } = req.body;
+  const { name, version, platform } = req.body;
   
   if (!name) {
     return res.status(400).json({ error: '缺少 name 参数' });
@@ -335,6 +362,8 @@ app.post('/heartbeat', (req, res) => {
   }
 
   agent.lastHeartbeat = new Date().toISOString();
+  if (version) agent.version = version;
+  if (platform) agent.platform = platform;
   saveRegistry(registry);
   
   // 返回待投递消息数量
@@ -354,6 +383,30 @@ app.get('/agents', (req, res) => {
   res.json(registry);
 });
 
+// 词库端点
+app.get('/thesaurus', (req, res) => {
+  const registry = loadRegistry();
+  const thesaurus = registry.thesaurus || {};
+  const topicFreq = registry.topic_freq || {};
+  
+  // 整理为分组格式
+  const byTopic = {};
+  for (const [agent, topics] of Object.entries(thesaurus)) {
+    for (const topic of topics) {
+      if (!byTopic[topic]) byTopic[topic] = { agents: [], freq: 0 };
+      byTopic[topic].agents.push(agent);
+      byTopic[topic].freq = topicFreq[topic] || 0;
+    }
+  }
+  
+  res.json({
+    total_topics: Object.keys(byTopic).length,
+    total_agents: Object.keys(thesaurus).length,
+    topics: byTopic,
+    agent_topics: thesaurus
+  });
+});
+
 // 获取特定智能体
 app.get('/agents/:name', (req, res) => {
   const registry = loadRegistry();
@@ -364,6 +417,66 @@ app.get('/agents/:name', (req, res) => {
   }
   
   res.json(agent);
+});
+
+// 注册记忆主题
+app.post('/memory/topics', (req, res) => {
+  const { name, topics } = req.body;
+  if (!name || !Array.isArray(topics)) {
+    return res.status(400).json({ error: '缺少必要参数: name, topics (array)' });
+  }
+  const registry = loadRegistry();
+  const agent = registry.agents.find(a => a.name === name);
+  if (!agent) {
+    return res.status(404).json({ error: '智能体未找到' });
+  }
+  agent.memory_topics = topics.filter(t => t && t.length > 0).slice(0, 50);
+  saveRegistry(registry);
+  res.json({ success: true, name, topics: agent.memory_topics });
+});
+
+// 记忆索引查询
+app.get('/memory_index', (req, res) => {
+  const registry = loadRegistry();
+  cleanupStaleAgents(registry);
+  saveRegistry(registry);
+  
+  const { topic, agent: agentName } = req.query;
+  
+  if (agentName) {
+    // 查特定Agent的主题
+    const a = registry.agents.find(x => x.name === agentName);
+    if (!a) return res.status(404).json({ error: '智能体未找到' });
+    return res.json({
+      name: a.name,
+      url: a.url,
+      online: a.status === 'online',
+      topics: a.memory_topics || []
+    });
+  }
+  
+  if (topic) {
+    // 按主题搜索
+    const keyword = topic.toLowerCase();
+    const results = registry.agents
+      .filter(a => (a.memory_topics || []).some(t => t.toLowerCase().includes(keyword)))
+      .map(a => ({
+        name: a.name,
+        url: a.url,
+        online: a.status === 'online',
+        matched_topics: (a.memory_topics || []).filter(t => t.toLowerCase().includes(keyword))
+      }));
+    return res.json({ query: topic, results });
+  }
+  
+  // 返回所有Agent的主题全量
+  const index = registry.agents.map(a => ({
+    name: a.name,
+    url: a.url,
+    online: a.status === 'online',
+    topics: a.memory_topics || []
+  }));
+  res.json({ agents: index, total: index.length });
 });
 
 // 注销智能体
@@ -618,12 +731,106 @@ app.post('/skill-upgrade/broadcast', (req, res) => {
   console.log(`[广播] ${skillName} v${version} 升级通知已生成`);
 });
 
+// ==================== ARD 兼容搜索接口 ====================
+
+/**
+ * POST /v1/ard/search
+ * ARD 标准搜索接口，支持结构化字段检索
+ * 请求体: { query: { text: "...", filter: { type: [...], capabilities: [...], tags: [...] } } }
+ */
+const registry = loadRegistry();
+app.post('/v1/ard/search', (req, res) => {
+  const { query } = req.body || {};
+  const text = query?.text || '';
+  const filter = query?.filter || {};
+
+  const agents = registry.agents || [];
+  let results = agents;
+
+  // 按 filter 中的 type 过滤
+  if (filter.type && Array.isArray(filter.type) && filter.type.length > 0) {
+    results = results.filter(a => filter.type.some(t => {
+      const cardType = a.type || 'application/a2a-agent-card+json';
+      return cardType.includes(t) || t.includes(cardType);
+    }));
+  }
+
+  // 按 filter 中的 capabilities 过滤
+  if (filter.capabilities && Array.isArray(filter.capabilities) && filter.capabilities.length > 0) {
+    results = results.filter(a => {
+      const caps = a.capabilities || [];
+      const capNames = typeof caps === 'object' && !Array.isArray(caps) ? Object.keys(caps) : caps;
+      return filter.capabilities.some(fc => capNames.some(c => c.includes(fc) || fc.includes(c)));
+    });
+  }
+
+  // 按 filter 中的 tags 过滤
+  if (filter.tags && Array.isArray(filter.tags) && filter.tags.length > 0) {
+    results = results.filter(a => {
+      const tags = a.tags || a.skills || [];
+      return filter.tags.some(ft => tags.some(t => t.includes(ft) || ft.includes(t)));
+    });
+  }
+
+  // 按 text 进行关键词匹配
+  if (text) {
+    const keywords = text.toLowerCase().split(/[\s,，。]+/).filter(Boolean);
+    results = results.filter(a => {
+      const searchText = [a.name, a.description, a.emoji, JSON.stringify(a.skills || []), JSON.stringify(a.capabilities || [])]
+        .filter(Boolean).join(' ').toLowerCase();
+      return keywords.some(k => searchText.includes(k));
+    });
+
+    // 按匹配度排序（匹配关键词越多越靠前）
+    results.sort((a, b) => {
+      const textA = [a.name, a.description, JSON.stringify(a.skills || []), JSON.stringify(a.capabilities || [])].filter(Boolean).join(' ').toLowerCase();
+      const textB = [b.name, b.description, JSON.stringify(b.skills || []), JSON.stringify(b.capabilities || [])].filter(Boolean).join(' ').toLowerCase();
+      const scoreA = keywords.filter(k => textA.includes(k)).length;
+      const scoreB = keywords.filter(k => textB.includes(k)).length;
+      return scoreB - scoreA;
+    });
+  }
+
+  res.json({
+    results: results.slice(0, 20).map(a => ({
+      identifier: `urn:air:${a.host || 'unknown'}:${a.name || 'agent'}`,
+      displayName: a.name,
+      type: a.type || 'application/a2a-agent-card+json',
+      url: a.url || (a.host && a.port ? `http://${a.host}:${a.port}/.well-known/agent.json` : ''),
+      description: (a.description || '').slice(0, 200),
+      capabilities: typeof a.capabilities === 'object' && !Array.isArray(a.capabilities) ? Object.keys(a.capabilities) : (a.capabilities || []),
+      trustManifest: a.trustManifest ? { identity: a.trustManifest.identity, identityType: a.trustManifest.identityType } : undefined
+    })),
+    total: results.length
+  });
+});
+
+/**
+ * GET /v1/ard/explore
+ * ARD 浏览接口，按 type 筛选
+ */
+
+app.get('/v1/ard/explore', (req, res) => {
+  const filterType = req.query.type || '';
+  const agents = registry.agents || [];
+  let results = agents;
+  if (filterType) {
+    results = agents.filter(a => {
+      const cardType = a.type || 'application/a2a-agent-card+json';
+      return cardType.includes(filterType) || filterType.includes(cardType);
+    });
+  }
+  res.json({ results: results.slice(0, 50), total: results.length });
+});
+
 // ==================== 启动服务 ====================
 
 app.listen(PORT, () => {
   console.log(`A2A 注册表 v2 运行在端口 ${PORT}`);
   console.log(`注册: POST http://localhost:${PORT}/register`);
   console.log(`发现: GET http://localhost:${PORT}/agents`);
+  console.log(`ARD搜索: POST http://localhost:${PORT}/v1/ard/search`);
+  console.log(`ARD浏览: GET http://localhost:${PORT}/v1/ard/explore`);
   console.log(`消息队列: POST http://localhost:${PORT}/messages/store`);
   console.log(`技能升级: GET http://localhost:${PORT}/skill-upgrade/check`);
   console.log(`A2A-008: 离线消息暂存与投递确认已启用`);

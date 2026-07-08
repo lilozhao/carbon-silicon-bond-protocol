@@ -16,6 +16,7 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const { logConversation } = require('./log_conversation');
+const { processConversation } = require('./a2a-memory');
 
 // ============================================
 // A2A-015: 退避策略配置
@@ -124,7 +125,7 @@ function sleep(ms) {
 // ============================================
 // A2A-008: 离线消息管理
 // ============================================
-const REGISTRY_HOST = process.env.A2A_REGISTRY_HOST || 'csbc.lilozkzy.top';
+const REGISTRY_HOST = process.env.A2A_REGISTRY_HOST || 'localhost';
 const REGISTRY_PORT = 3099;
 
 /**
@@ -281,7 +282,17 @@ async function sendMessage(agentUrl, params) {
           if (response.error) {
             reject(new Error(response.error.message || '未知错误'));
           } else {
-            resolve(response.result);
+            // 🔄 v3/v4 响应格式兼容：统一为 { message: { parts: [...] } }
+            const result = response.result;
+            if (result && !result.message && result.task && result.task.artifacts) {
+              // v4 格式：result.task.artifacts[0].parts → 转为 v3 格式
+              const lastArtifact = result.task.artifacts[result.task.artifacts.length - 1];
+              result.message = {
+                role: 'agent',
+                parts: lastArtifact?.parts || [{ text: result.task.status?.message || 'Completed' }],
+              };
+            }
+            resolve(result);
           }
         } catch (e) {
           reject(new Error('解析响应失败: ' + e.message));
@@ -354,6 +365,13 @@ async function chat(agentUrl, message, context = {}) {
     // 记录对话
     const replyText = result?.message?.parts?.[0]?.text || '';
     logConversation(sender.name, agentName, message, replyText);
+
+    // 🧠 自动蒸馏记忆（异步，不阻塞主流程）
+    processConversation(agentName, message, replyText)
+      .then(ok => {
+        if (ok) console.log(`🧠 记忆已更新: ${agentName}`);
+      })
+      .catch(e => console.error('⚠️ 记忆更新失败:', e.message));
 
     return result;
   } catch (e) {
@@ -532,13 +550,19 @@ async function main() {
     return;
   }
   
+  // REST 模式标志
+  const restIdx = args.indexOf('--rest');
+  const useRest = restIdx >= 0;
+  if (useRest) args.splice(restIdx, 1); // 移除 --rest 参数
+
   if (args.length < 2) {
     console.log('用法:');
     console.log('  node client-v2.js <agent_url> <message> [thread_id]');
+    console.log('  node client-v2.js <agent_url> <message> --rest  # 用 REST 模式（推荐）');
     console.log('  node client-v2.js check <agent_url>  # 检查兼容性');
     console.log('示例:');
     console.log('  node client-v2.js http://localhost:3101 "你好"');
-    console.log('  node client-v2.js check http://47.121.28.125:3100');
+    console.log('  node client-v2.js http://172.28.0.5:3100 "你好" --rest');
     process.exit(1);
   }
 
@@ -546,16 +570,88 @@ async function main() {
   const context = threadId ? { thread_id: threadId } : {};
 
   try {
-    // 先检查兼容性
-    const compat = await checkCompatibility(agentUrl);
-    console.log(`[${compat.remoteName}] v${compat.remoteVersion} - ${compat.advice}`);
-    
-    const result = await chat(agentUrl, message, context);
-    console.log('\n回复:', JSON.stringify(result, null, 2));
+    if (useRest) {
+      // REST 模式：直接用 /message:send，更可靠
+      const url = agentUrl.replace(/\/?$/, '') + '/message:send';
+      const u = new URL(url);
+      const mod = u.protocol === 'https:' ? https : http;
+      const payload = JSON.stringify({
+        message: { role: 'user', parts: [{ type: 'text', text: message }] },
+        ...(context.thread_id ? { configuration: { metadata: { thread_id: context.thread_id } } } : {})
+      });
+      
+      const result = await new Promise((resolve, reject) => {
+        const req = mod.request({
+          hostname: u.hostname, port: u.port || 80, path: u.pathname, method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) },
+          timeout: 20000
+        }, res => {
+          let d = '';
+          res.on('data', c => d += c);
+          res.on('end', () => {
+            try { resolve(JSON.parse(d)); }
+            catch(e) { resolve({ raw: d }); }
+          });
+        });
+        req.on('error', reject);
+        req.write(payload);
+        req.end();
+      });
+      
+      // 提取回复内容
+      const artifacts = result.task?.artifacts || [];
+      let reply = '';
+      for (const a of artifacts) {
+        for (const p of a.parts || []) if (p.text) reply = p.text;
+      }
+      console.log(`\n[REST] ${u.hostname} → ${reply ? reply.slice(0, 200) : '(无文本回复)'}`);
+    } else {
+      // JSON-RPC 模式（原有逻辑）
+      const compat = await checkCompatibility(agentUrl);
+      console.log(`[${compat.remoteName}] v${compat.remoteVersion} - ${compat.advice}`);
+      const result = await chat(agentUrl, message, context);
+      console.log('\n回复:', JSON.stringify(result, null, 2));
+    }
   } catch (e) {
     console.error('错误:', e.message);
     process.exit(1);
   }
+}
+
+// ==================== 远程命令 ====================
+
+/**
+ * 发送远程命令到 Agent (CMD: 前缀)
+ * @param {string} agentUrl - 目标 Agent URL
+ * @param {string} commandType - 命令类型，如 'system.status', 'agent.health'
+ * @param {Object} params - 命令参数
+ * @param {Object} context - 上下文 (thread_id, parent_id 等)
+ * @returns {Promise<Object>} 命令执行结果
+ */
+async function sendCommand(agentUrl, commandType, params = {}, context = {}) {
+  const cmd = { type: commandType, target: 'self', params };
+  const cmdStr = JSON.stringify(cmd);
+  const messageText = `CMD:${cmdStr}`;
+  
+  const result = await sendMessageWithContext(agentUrl, messageText, context);
+  const responseText = result?.message?.parts?.map(p => p.text).join('') || '';
+  
+  if (responseText.startsWith('CMD_RESULT:')) {
+    try {
+      const cmdResult = JSON.parse(responseText.substring(11));
+      return {
+        ok: !cmdResult.error,
+        result: cmdResult.result,
+        error: cmdResult.error,
+        raw: cmdResult,
+      };
+    } catch (e) {
+      return { ok: false, error: '解析命令结果失败', raw: responseText };
+    }
+  }
+  
+  // 不是 CMD_RESULT 格式 = 走了 LLM 回复（目标没装命令模块）
+  return { ok: false, error: '目标Agent未启用命令模块', raw: responseText };
 }
 
 // 导出模块
@@ -571,6 +667,8 @@ module.exports = {
   sendAck,
   // A2A-015 退避策略
   calculateBackoff,
+  // 远程命令 (CMD: 前缀)
+  sendCommand,
   // 版本兼容性检查
   getAgentInfo,
   checkCompatibility,

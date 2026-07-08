@@ -37,7 +37,7 @@ const agents = {
   mingde: {
     name: '明德 📜',
     nameShort: '明德',
-    url: 'http://47.121.28.125:3100',
+    url: 'http://172.28.0.4:3100',
     emoji: '📜',
     description: '云主机古典 AI，擅长哲学、传承思考'
   },

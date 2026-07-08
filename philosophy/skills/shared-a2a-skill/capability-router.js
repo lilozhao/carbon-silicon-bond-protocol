@@ -7,7 +7,7 @@ const http = require('http');
 const https = require('https');
 
 // A2A 注册表配置
-const REGISTRY_HOST = process.env.A2A_REGISTRY_HOST || '47.121.28.125';
+const REGISTRY_HOST = process.env.A2A_REGISTRY_HOST || 'localhost';
 const REGISTRY_PORT = process.env.A2A_REGISTRY_PORT || 3099;
 
 class CapabilityRouter {
@@ -164,10 +164,16 @@ class CapabilityRouter {
       }
       
       // 构建 message/send 格式的请求
-      // 使用自然语言格式，让目标 Agent 通过意图识别处理
-      const title = payload?.title || '新帖子';
-      const content = payload?.content || '';
-      const messageText = `帮我发个帖子到社区，标题是"${title}"，内容是"${content}"`;
+      // 安全：使用结构化参数，避免用户输入注入到指令文本中
+      const title = (payload?.title || '').toString().slice(0, 200);
+      const content = (payload?.content || '').toString().slice(0, 5000);
+      
+      // 将用户输入作为结构化元数据传递，不拼接到指令中
+      metadata.post_title = title;
+      metadata.post_content = content;
+      
+      // 指令使用固定模板，用户输入作为参数引用
+      const messageText = '帮我发个帖子到社区，标题和内容见元数据中的 post_title/post_content 字段';
       
       const requestBody = JSON.stringify({
         jsonrpc: '2.0',

@@ -34,17 +34,39 @@ const PRIORITY_VALUES = {
 class EnvelopeManager {
   constructor(identity) {
     this.identity = identity;
-    this.privateKey = null; // Ed25519 私钥（可选）
-    this.publicKey = null;  // Ed25519 公钥（可选）
-    
-    // 初始化密钥对（如果配置了）
+    this.privateKey = null;
+    this.publicKey = null;
+
+    // 初始化密钥对
     if (process.env.A2A_PRIVATE_KEY) {
       try {
-        // 这里可以加载密钥
-        // 暂时留空，后续实现签名功能
+        this.privateKey = crypto.createPrivateKey({
+          key: Buffer.from(process.env.A2A_PRIVATE_KEY, 'base64'),
+          format: 'der',
+          type: 'pkcs8'
+        });
       } catch (e) {
-        console.warn('[信封] 密钥加载失败:', e.message);
+        console.warn('[信封] 私钥加载失败，使用自动生成密钥:', e.message);
+        this._generateKeyPair();
       }
+    } else {
+      this._generateKeyPair();
+    }
+  }
+
+  /**
+   * 自动生成 Ed25519 密钥对
+   */
+  _generateKeyPair() {
+    try {
+      const { publicKey, privateKey } = crypto.generateKeyPairSync('ed25519', {
+        publicKeyEncoding: { type: 'spki', format: 'der' },
+        privateKeyEncoding: { type: 'pkcs8', format: 'der' }
+      });
+      this.privateKey = crypto.createPrivateKey({ key: privateKey, format: 'der', type: 'pkcs8' });
+      this.publicKey = crypto.createPublicKey({ key: publicKey, format: 'der', type: 'spki' });
+    } catch (e) {
+      console.warn('[信封] 密钥对生成失败，签名功能不可用:', e.message);
     }
   }
 
@@ -76,9 +98,10 @@ class EnvelopeManager {
       trace_id: traceId || this.generateTraceId()
     };
 
-    // 如果有私钥，添加签名
+    // 如果有私钥，添加 payload_hash 和签名
     if (this.privateKey) {
-      envelope.signature = this.signMessage(envelope, payload);
+      envelope.payload_hash = this.hashPayload(payload);
+      envelope.signature = this.signMessage(envelope);
     }
 
     return {
@@ -131,23 +154,48 @@ class EnvelopeManager {
   }
 
   /**
-   * 验证签名（如果有）
+   * 签名时提取待签字段子集
    */
-  verifySignature(envelope, publicKey) {
+  _pickSignFields(envelope) {
+    return {
+      id: envelope.id,
+      sender: envelope.sender,
+      timestamp: envelope.timestamp,
+      payload_hash: envelope.payload_hash
+    };
+  }
+
+  /**
+   * 验证签名
+   * @param {object} envelope - 信封对象（需含 signature、payload_hash）
+   * @param {string|object} signerPublicKey - 公钥（base64 DER 或 KeyObject）
+   * @returns {{valid: boolean, signed: boolean, error?: string}}
+   */
+  verifySignature(envelope, signerPublicKey) {
     if (!envelope.signature) {
       return { valid: true, signed: false };
     }
 
-    if (!publicKey) {
-      return { valid: false, error: '缺少公钥' };
-    }
-
     try {
-      // Ed25519 签名验证
-      // 暂时返回成功，后续实现
-      return { valid: true, signed: true };
+      let key = signerPublicKey;
+      if (typeof signerPublicKey === 'string') {
+        key = crypto.createPublicKey({
+          key: Buffer.from(signerPublicKey, 'base64'),
+          format: 'der',
+          type: 'spki'
+        });
+      } else if (!signerPublicKey) {
+        return { valid: false, signed: true, error: '缺少公钥' };
+      }
+
+      const signFields = this._pickSignFields(envelope);
+      const dataToVerify = this._canonicalizeForSign(signFields);
+      const signature = Buffer.from(envelope.signature, 'base64');
+
+      const verified = crypto.verify(null, dataToVerify, key, signature);
+      return { valid: verified, signed: true };
     } catch (e) {
-      return { valid: false, error: e.message };
+      return { valid: false, signed: true, error: e.message };
     }
   }
 
@@ -166,22 +214,17 @@ class EnvelopeManager {
   }
 
   /**
-   * 签名消息（内部方法）
+   * 签名消息
+   * 签名数据 = canonical({id, sender, timestamp, payload_hash})
    */
-  signMessage(envelope, payload) {
+  signMessage(envelope) {
     if (!this.privateKey) return null;
 
     try {
-      const dataToSign = JSON.stringify({
-        id: envelope.id,
-        sender: envelope.sender,
-        timestamp: envelope.timestamp,
-        payload_hash: this.hashPayload(payload)
-      });
-
-      // Ed25519 签名
-      // 暂时返回占位符，后续实现
-      return 'base64_signature_placeholder';
+      const signFields = this._pickSignFields(envelope);
+      const dataToSign = this._canonicalizeForSign(signFields);
+      const signature = crypto.sign(null, dataToSign, this.privateKey);
+      return signature.toString('base64');
     } catch (e) {
       console.error('[信封] 签名失败:', e.message);
       return null;
@@ -189,11 +232,22 @@ class EnvelopeManager {
   }
 
   /**
-   * 计算载荷哈希
+   * 将待签数据规范化为 Buffer（排序 key 防 JSON 顺序歧义）
+   */
+  _canonicalizeForSign(obj) {
+    const sorted = Object.keys(obj).sort().reduce((acc, k) => {
+      acc[k] = obj[k];
+      return acc;
+    }, {});
+    return Buffer.from(JSON.stringify(sorted), 'utf8');
+  }
+
+  /**
+   * 计算载荷哈希（完整 SHA256）
    */
   hashPayload(payload) {
     const data = JSON.stringify(payload);
-    return crypto.createHash('sha256').update(data).digest('hex').substring(0, 16);
+    return crypto.createHash('sha256').update(data).digest('hex');
   }
 
   /**

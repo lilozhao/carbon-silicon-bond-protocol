@@ -36,7 +36,7 @@ const CONFIG = {
   
   // 飞书通知配置
   feishu: {
-    webhook: process.env.FEISHU_WEBHOOK || '',
+    webhook: ... IGNORED ... || '',
     enabled: false // 需要配置 webhook 才启用
   }
 };

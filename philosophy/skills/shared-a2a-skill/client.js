@@ -231,8 +231,8 @@ async function storeOfflineMessage(agentUrl, params, context) {
     });
     
     const options = {
-      hostname: '47.121.28.125',
-      port: 3099,
+      hostname: process.env.A2A_REGISTRY_HOST || 'localhost',
+      port: parseInt(process.env.A2A_REGISTRY_PORT || "3099"),
       path: '/messages/store',
       method: 'POST',
       headers: {

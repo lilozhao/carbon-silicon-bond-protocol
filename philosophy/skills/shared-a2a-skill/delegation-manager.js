@@ -104,7 +104,7 @@ class DelegationManager {
     // 检查是否已存在相同的信任关系
     const existing = this.trusts.find(t =>
       t.grantor === grantor && t.grantee === grantee &&
-      JSON.stringify(t.scope) === JSON.stringify(entry.scope)
+      JSON.stringify([...t.scope].sort()) === JSON.stringify([...entry.scope].sort())
     );
     if (existing) {
       Object.assign(existing, entry);
@@ -188,9 +188,10 @@ class DelegationManager {
     const { level = 'execute', ttlMs = 10 * 60 * 1000 } = options;
 
     // 查找是否有匹配的信任关系
+    // 安全：通配符 '*' 匹配任意，否则严格等值匹配
     const matchingTrust = this.trusts.find(t =>
       t.grantor === grantor &&
-      (t.scope.includes('*') || t.scope.includes(scope) || t.scope.some(s => scope.startsWith(s)))
+      (t.scope.includes('*') || t.scope.includes(scope))
     );
 
     const authority = {
@@ -375,9 +376,9 @@ class DelegationManager {
 
       case 'inform':
       default:
-        // 知会：仅记录，不强制执行
-        // 但如果有 authority 但未验证，可以执行但标记为 "未经授权"
-        return await executeFn(effectiveLevel);
+        // 知会：仅记录，不执行
+        // 返回 skipped 标记，让调用方决定是否降级处理
+        return { skipped: true, level: effectiveLevel, reason: 'inform 级别不自动执行' };
     }
   }
 

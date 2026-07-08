@@ -62,7 +62,7 @@ function broadcastToAgent(agent, message) {
     // 使用 A2A JSON-RPC 协议
     const payload = JSON.stringify({
       jsonrpc: '2.0',
-      method: 'message',
+      method: 'message/send',
       params: {
         from: 'ruolan',
         type: 'HERITAGE_BROADCAST',

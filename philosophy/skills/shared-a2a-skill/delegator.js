@@ -125,8 +125,10 @@ class TaskDelegator {
       }
     }
 
-    // 4. 全部失败
-    throw new Error(`All delegates failed: ${errors.map(e => `${e.agent}: ${e.error}`).join('; ')}`);
+    // 4. 全部失败（不暴露具体 Agent 地址）
+    const errorSummary = errors.map(e => `${e.agent}`).join(', ');
+    const firstError = errors[0]?.error || '未知错误';
+    throw new Error(`所有 ${errors.length} 个候选委托均已失败 (${errorSummary})`);
   }
 
   /**
@@ -151,8 +153,19 @@ class TaskDelegator {
    * 带超时的委托
    */
   async delegateTo(agent, task, payload, timeout = 30000) {
+    // 校验 agent.url 是否为合法 HTTP(S) URL
+    try {
+      const parsed = new URL(agent.url);
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        throw new Error(`不支持的协议: ${parsed.protocol}`);
+      }
+    } catch (e) {
+      return Promise.reject(new Error(`委托目标 URL 无效: ${agent.url} - ${e.message}`));
+    }
+
     return new Promise((resolve, reject) => {
-      const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const crypto = require('crypto');
+      const requestId = `req_${crypto.randomBytes(8).toString('hex')}`;
 
       // 1. 设置超时
       const timer = setTimeout(() => {
@@ -239,6 +252,18 @@ class TaskDelegator {
   }
 
   sendA2A(url, message) {
+    // URL 安全校验
+    try {
+      const parsed = new URL(url);
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        console.error(`[Delegator] URL 协议不支持: ${url}`);
+        return;
+      }
+    } catch (e) {
+      console.error(`[Delegator] URL 格式无效: ${url}`);
+      return;
+    }
+
     if (this.a2aClient && typeof this.a2aClient.send === 'function') {
       this.a2aClient.send(url, message);
     } else {
@@ -286,13 +311,14 @@ class TaskDelegator {
       return;
     }
 
-    // 2. 发送 ACK
-    console.log(`[Delegator] 发送 ACK，接受委托`);
+    // 2. 发送 ACK（ETA 使用实际超时时间）
+    const actualTimeout = message.timeout || 30000;
+    console.log(`[Delegator] 发送 ACK，接受委托，ETA: ${actualTimeout}ms`);
     this.sendA2A(from.url, `DELEGATE_ACK:${JSON.stringify({
       type: 'DELEGATE_ACK',
       id,
       from: this.agentCard.name,
-      eta: 5000
+      eta: actualTimeout
     })}`);
 
     // 3. 执行任务

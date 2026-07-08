@@ -19,7 +19,7 @@ class DelegationValidator {
    * @returns {object} 包含验证信息的结果
    */
   async delegateAndVerify(delegateFn, capability, params, options = {}) {
-    const { autoRetry = true, maxRetries = 2, requireUserConfirm = false } = options;
+    const { autoRetry = true, maxRetries = 3 } = options;
 
     let attempts = 0;
     let lastResult = null;
