@@ -6,8 +6,8 @@
  */
 
 const http = require('http');
-const { AIPAdapter } = require('./a2a-aip-adapter');
-const aip = require('./src');
+const { AIPAdapter } = require('../a2a-aip-adapter');
+const aip = require('../src');
 
 console.log('═══════════════════════════════════════');
 console.log('  AIP-A2A 端到端集成测试');
