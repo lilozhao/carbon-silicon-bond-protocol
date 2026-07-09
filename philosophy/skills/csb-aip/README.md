@@ -12,11 +12,10 @@ csb-aip/
 │   ├── warmth.js        ← 余温衰减计算（双轨+动态阈值）
 │   ├── compat.js        ← 兼容性自检
 │   └── index.js         ← 统一导出
+├── a2a-aip-adapter.js   ← A2A Server 适配器
+├── integration-example.js ← 集成示例
 ├── test/
-│   ├── identity.test.js
-│   ├── describe.test.js
-│   ├── warmth.test.js
-│   └── compat.test.js
+│   └── run-all.js       ← 26 个测试
 ├── audit/               ← 自检报告归档
 ├── package.json
 └── README.md
