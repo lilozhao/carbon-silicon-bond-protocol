@@ -138,6 +138,11 @@ if (aipIntegration) {
         const parsed = aipIntegration.parseIncoming(msg);
         if (!parsed.valid) console.warn('[AIP] 消息兼容性问题:', parsed.issues);
       }
+      // 解析目标 Agent，响应完成后记录交互（余温刷新）
+      const targetId = req.body?.to || req.body?.params?.to || msg?.contextId;
+      if (targetId) {
+        res.on('finish', () => aipIntegration.recordInteraction(targetId, 10));
+      }
     } catch (e) { /* 非消息请求跳过 */ }
     next();
   };
@@ -147,7 +152,9 @@ if (aipIntegration) {
 }
 ```
 
-> ⚠️ **重要**：A2A 消息走 `/a2a/json-rpc`（JSON-RPC）和 `/message:send`（REST），不走 `/message`。
+> ⚠️ **重要**：
+> - A2A 消息走 `/a2a/json-rpc`（JSON-RPC）和 `/message:send`（REST），不走 `/message`
+> - `recordInteraction` 必须在响应完成后调用（`res.on('finish', ...)`），否则余温不会记录
 
 ---
 
