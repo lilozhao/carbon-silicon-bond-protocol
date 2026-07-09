@@ -129,17 +129,25 @@ const body = JSON.stringify({
 #### 补丁 4：消息处理中间件（standardAPI.registerRoutes 之前添加）
 
 ```js
-// AIP 消息兼容中间件
+// AIP 消息兼容中间件（覆盖 /a2a/json-rpc + /message:send + /message:stream）
 if (aipIntegration) {
-  app.use('/message', (req, res, next) => {
-    if (req.body && req.body.message) {
-      const parsed = aipIntegration.parseIncoming(req.body.message);
-      if (!parsed.valid) console.warn('[AIP] 消息兼容性问题:', parsed.issues);
-    }
+  const aipMessageHook = (req, res, next) => {
+    try {
+      const msg = req.body?.message || req.body?.params?.message || req.body?.params;
+      if (msg && typeof msg === 'object') {
+        const parsed = aipIntegration.parseIncoming(msg);
+        if (!parsed.valid) console.warn('[AIP] 消息兼容性问题:', parsed.issues);
+      }
+    } catch (e) { /* 非消息请求跳过 */ }
     next();
-  });
+  };
+  app.use('/a2a/json-rpc', aipMessageHook);
+  app.use('/message:send', aipMessageHook);
+  app.use('/message:stream', aipMessageHook);
 }
 ```
+
+> ⚠️ **重要**：A2A 消息走 `/a2a/json-rpc`（JSON-RPC）和 `/message:send`（REST），不走 `/message`。
 
 ---
 
