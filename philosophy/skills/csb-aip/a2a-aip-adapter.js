@@ -10,6 +10,7 @@
  */
 
 const aip = require('./src');
+const { logInteraction, logConversation, logWarmthChange, logSelfCheck, logParse } = require('./src/logger');
 
 class AIPAdapter {
   constructor(options = {}) {
@@ -80,11 +81,16 @@ class AIPAdapter {
       };
     }
 
-    return {
+    const result = {
       valid: validation.compatible,
       issues: validation.issues,
       aipMeta
     };
+
+    // 记录日志
+    logParse(result);
+
+    return result;
   }
 
   /**
@@ -146,6 +152,7 @@ class AIPAdapter {
         elapsedDays,
         existing.isDeep
       );
+      const oldWarmth = existing.warmth;
       existing.warmth = aip.refreshWarmth(currentWarmth, contribution, 'max');
       existing.lastInteraction = now;
       existing.interactions++;
@@ -153,6 +160,10 @@ class AIPAdapter {
         interactions: existing.interactions,
         days: (now - existing.created) / (1000 * 60 * 60 * 24)
       });
+
+      // 记录日志
+      logWarmthChange(agentId, oldWarmth, existing.warmth, 'interaction');
+      logInteraction({ from: 'self', to: agentId, type: 'a2a', warmth: existing.warmth });
     } else {
       // 新关系
       this.warmthTracker.set(agentId, {
@@ -217,6 +228,10 @@ class AIPAdapter {
   runSelfCheck() {
     const result = aip.runSelfCheck(aip.version);
     const report = aip.generateReport(result);
+
+    // 记录日志
+    logSelfCheck(result);
+
     return { result, report };
   }
 

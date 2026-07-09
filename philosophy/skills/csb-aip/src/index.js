@@ -7,6 +7,7 @@ const identity = require('./identity');
 const describe = require('./describe');
 const warmth = require('./warmth');
 const compat = require('./compat');
+const logger = require('./logger');
 
 module.exports = {
   // 身份映射
@@ -33,6 +34,9 @@ module.exports = {
   generateReport: compat.generateReport,
   saveReport: compat.saveReport,
   validateMessage: compat.validateMessage,
+
+  // 日志
+  logger,
 
   // 版本
   version: '0.5.0',
