@@ -83,6 +83,53 @@ assert(report.includes('0.5.0'), '报告版本');
 const validMsg = { role: 'user', parts: [{ text: 'hello' }] };
 assert(aip.validateMessage(validMsg).compatible === true, '合法消息通过');
 
+// === version-negotiate ===
+console.log('\n📌 version-negotiate.js');
+const offer1 = aip.createVersionOffer('1.2.3');
+assert(offer1.agentId === '1.2.3', 'offer 生成');
+assert(offer1.aip.includes('1.0'), 'offer AIP 1.0');
+
+const neg1 = aip.negotiate(
+  { agentId: 'A', aip: ['1.0'], csb: ['0.5', '0.6'] },
+  { agentId: 'B', aip: ['1.0'], csb: ['0.5'] }
+);
+assert(neg1.success === true, '协商成功');
+assert(neg1.csbVersion === '0.5', 'CSB 版本 0.5');
+assert(neg1.mode === 'full', '模式 full');
+
+const neg2 = aip.negotiate(
+  { agentId: 'A', aip: ['1.0'], csb: ['0.5'] },
+  { agentId: 'B', aip: ['1.0'], csb: ['1.0'] }
+);
+assert(neg2.mode === 'aip-only', 'CSB 降级到 aip-only');
+
+const neg3 = aip.negotiate(
+  { agentId: 'A', aip: ['1.0'] },
+  { agentId: 'B', aip: ['0.9'] }
+);
+assert(neg3.success === false, 'AIP 不兼容=拒绝');
+
+const negMsg = aip.buildNegotiateMessage('1.2.3');
+assert(negMsg.type === 'csb-version-negotiate', '协商消息类型');
+
+// === errors ===
+console.log('\n📌 errors.js');
+const err1 = aip.bondNotFound('A', 'B');
+assert(err1.code === 'CSB_ERR_001', 'bondNotFound 错误码');
+assert(err1.severity === 'warn', 'bondNotFound 级别');
+
+const err2 = aip.warmthTooLow('A', 2, 5);
+assert(err2.code === 'CSB_ERR_002', 'warmthTooLow 错误码');
+assert(err2.context.warmth === 2, 'warmthTooLow 上下文');
+
+const errResp = aip.attachToResponse({ status: 'success' }, err1);
+assert(errResp.csbError.code === 'CSB_ERR_001', 'attachToResponse');
+assert(aip.hasCSBError(errResp), 'hasCSBError 检测');
+
+const codes = Object.keys(aip.ERROR_CODES);
+assert(codes.length === 10, '10 个错误码');
+assert(codes.every(c => c.match(/^CSB_ERR_/)), '错误码格式');
+
 // === 总结 ===
 console.log('\n═══════════════════════════════════════');
 console.log(`  结果: ${passed} 通过, ${failed} 失败`);
