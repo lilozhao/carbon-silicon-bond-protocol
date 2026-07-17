@@ -2,10 +2,9 @@
 /**
  * migrate-v02-to-v03.js — CSB-Memory v0.2 → v0.3 迁移脚本
  * 
- * 为现有记忆文件补充：
- * - L0 摘要（自动生成）
- * - URI 地址（自动映射）
- * - status 字段（默认 active）
+ * 支持两种 v0.2 格式：
+ * A) YAML 头格式（id: / tags: / timestamp: 等）
+ * B) 纯 Markdown 格式（# Agent 记忆档案 + ## 📅 时间戳 段落）
  * 
  * 迁移前自动备份，可回滚
  */
@@ -18,29 +17,151 @@ const { forEntry } = require('./csb-uri');
 const MEMORY_DIR = path.join('/home/node/.openclaw/workspace', 'memory', 'a2a-memories');
 const BACKUP_DIR = path.join('/home/node/.openclaw/workspace', 'memory', 'a2a-memories-backup-v02');
 
-// 确保备份目录存在
 if (!fs.existsSync(BACKUP_DIR)) {
   fs.mkdirSync(BACKUP_DIR, { recursive: true });
 }
 
 /**
- * 迁移单个文件
- * @param {string} filePath - 文件路径
- * @returns {object} { agent, migrated, skipped, errors }
+ * 检测文件格式
+ * @param {string} text - 文件内容
+ * @returns {'yaml'|'markdown'|'empty'}
+ */
+function detectFormat(text) {
+  if (!text || text.trim().length < 20) return 'empty';
+  // 有 YAML 头（--- 包裹的 id: 字段）
+  if (text.includes('---') && text.match(/id:\s*/)) return 'yaml';
+  // 纯 markdown（## 📅 时间戳 段落）
+  if (text.includes('## 📅')) return 'markdown';
+  // 有 ## 开头的段落但没有 📅
+  if (text.match(/^## /m)) return 'markdown';
+  return 'empty';
+}
+
+/**
+ * 解析 YAML 头格式（原有逻辑）
+ */
+function parseYamlEntry(yamlText, contentText) {
+  const meta = {};
+  for (const line of yamlText.split('\n')) {
+    const m = line.match(/^(\w+):\s*(.+)/);
+    if (m) {
+      let val = m[2].trim();
+      if (val.startsWith('[') && val.endsWith(']')) {
+        val = val.slice(1, -1).split(',').map(s => s.trim().replace(/"/g, ''));
+      } else {
+        val = val.replace(/^"|"$/g, '');
+      }
+      meta[m[1]] = val;
+    }
+  }
+  return { meta, content: contentText.trim() };
+}
+
+/**
+ * 解析纯 Markdown 格式
+ * 拆分 ## 📅 时间戳 段落
+ */
+function parseMarkdownFormat(text) {
+  const entries = [];
+  // 找到所有 ## 📅 段落
+  const sections = text.split(/^## 📅 /m);
+  
+  for (let i = 1; i < sections.length; i++) {
+    const section = sections[i];
+    const lines = section.split('\n');
+    
+    // 第一行是时间戳
+    const timestampLine = lines[0].trim();
+    const timestamp = parseChineseTimestamp(timestampLine);
+    
+    // 剩余是内容
+    const content = lines.slice(1).join('\n').trim();
+    if (!content || content.length < 10) continue;
+    
+    entries.push({
+      timestamp,
+      content,
+      source: 'markdown',
+    });
+  }
+  
+  // 如果没有 📅 段落，把整个文件当作一条记忆
+  if (entries.length === 0 && text.trim().length > 30) {
+    entries.push({
+      timestamp: new Date().toISOString(),
+      content: text.replace(/^# .*\n?/gm, '').trim(),
+      source: 'markdown-whole',
+    });
+  }
+  
+  return entries;
+}
+
+/**
+ * 解析中文时间戳
+ * 格式: 2026/7/9 19:21:08 或 2026-07-09 19:21:08
+ */
+function parseChineseTimestamp(str) {
+  if (!str) return new Date().toISOString();
+  
+  // 尝试 2026/7/9 19:21:08
+  const m1 = str.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?/);
+  if (m1) {
+    const [, y, mo, d, h, mi, s] = m1;
+    const date = new Date(parseInt(y), parseInt(mo) - 1, parseInt(d), parseInt(h), parseInt(mi), parseInt(s || '0'));
+    // 强制 GMT+8
+    const offset = date.getTimezoneOffset() * 60000;
+    return new Date(date - offset).toISOString().replace('Z', '+08:00');
+  }
+  
+  // 尝试 ISO 格式
+  const d = new Date(str);
+  if (!isNaN(d.getTime())) return d.toISOString();
+  
+  return new Date().toISOString();
+}
+
+/**
+ * 迁移单个文件（支持两种格式）
  */
 function migrateFile(filePath) {
   const filename = path.basename(filePath, '.md');
-  const result = { agent: filename, migrated: 0, skipped: 0, errors: [] };
+  const result = { agent: filename, migrated: 0, skipped: 0, format: 'unknown', errors: [] };
 
   const text = fs.readFileSync(filePath, 'utf-8');
-  const parts = text.split('\n---\n');
+  const format = detectFormat(text);
+  result.format = format;
 
-  if (parts.length < 3) {
-    result.skipped = parts.length - 1;
+  if (format === 'empty') {
+    result.skipped = 1;
     return result;
   }
 
-  const newParts = [parts[0]]; // 保留 header
+  if (format === 'yaml') {
+    // 原有 YAML 头逻辑
+    return migrateYamlFile(filePath, text, result);
+  }
+
+  if (format === 'markdown') {
+    // 新增 markdown 逻辑
+    return migrateMarkdownFile(filePath, text, result);
+  }
+
+  return result;
+}
+
+/**
+ * 迁移 YAML 头格式文件
+ */
+function migrateYamlFile(filePath, text, result) {
+  const filename = result.agent;
+  const parts = text.split('\n---\n');
+  if (parts.length < 3) {
+    result.skipped = 1;
+    return result;
+  }
+
+  const newParts = [parts[0]];
 
   for (let i = 1; i < parts.length; i += 2) {
     const yamlText = parts[i];
@@ -52,30 +173,15 @@ function migrateFile(filePath) {
       continue;
     }
 
-    // 解析现有 YAML
-    const meta = {};
-    for (const line of yamlText.split('\n')) {
-      const m = line.match(/^(\w+):\s*(.+)/);
-      if (m) {
-        let val = m[2].trim();
-        if (val.startsWith('[') && val.endsWith(']')) {
-          val = val.slice(1, -1).split(',').map(s => s.trim().replace(/"/g, ''));
-        } else {
-          val = val.replace(/^"|"$/g, '');
-        }
-        meta[m[1]] = val;
-      }
-    }
-
-    // 检查是否已迁移（有 uri 字段）
-    if (meta.uri) {
+    // 检查是否已迁移
+    if (yamlText.includes('uri:')) {
       newParts.push(yamlText);
       newParts.push(contentText);
       result.skipped++;
       continue;
     }
 
-    // 生成 v0.3 新增字段
+    const { meta } = parseYamlEntry(yamlText, contentText);
     const id = meta.id || `migrated_${Date.now()}`;
     const uri = forEntry(filename, id);
     const tags = Array.isArray(meta.tags) ? meta.tags : [];
@@ -88,7 +194,6 @@ function migrateFile(filePath) {
       tags,
     });
 
-    // 重建 YAML（在末尾追加新字段）
     const newFields = [
       `status: active`,
       `uri: "${uri}"`,
@@ -103,8 +208,62 @@ function migrateFile(filePath) {
     result.migrated++;
   }
 
-  // 写回文件
   fs.writeFileSync(filePath, newParts.join('\n---\n'));
+  return result;
+}
+
+/**
+ * 迁移纯 Markdown 格式文件
+ * 将 ## 📅 段落转换为 YAML 头格式
+ */
+function migrateMarkdownFile(filePath, text, result) {
+  const filename = result.agent;
+  const entries = parseMarkdownFormat(text);
+  
+  if (entries.length === 0) {
+    result.skipped = 1;
+    return result;
+  }
+
+  // 提取 header（# Agent 记忆档案 等）
+  const headerMatch = text.match(/^(# .+)\n/);
+  const header = headerMatch ? headerMatch[1] : `# ${filename} 记忆档案`;
+
+  // 重建为 YAML 头格式
+  let output = `${header}\n\n**首次对话**: ${entries[0].timestamp}\n`;
+
+  for (const entry of entries) {
+    const id = `mem_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+    const uri = forEntry(filename, id);
+    
+    const l0 = generateL0({
+      content: entry.content,
+      source: filename,
+      agent: filename,
+      timestamp: entry.timestamp,
+      tags: [],
+    });
+
+    const fields = [
+      `id: "${id}"`,
+      `type: conversation`,
+      `timestamp: "${entry.timestamp}"`,
+      `source: ${filename}`,
+      `confidence: medium`,
+      `tags: []`,
+      `visibility: public`,
+      `status: active`,
+      `uri: "${uri}"`,
+      `layers:`,
+      `  l0: "${l0.replace(/"/g, '\\"')}"`,
+      `  l2_ref: true`,
+    ];
+
+    output += `\n---\n${fields.join('\n')}\n---\n\n${entry.content}\n`;
+    result.migrated++;
+  }
+
+  fs.writeFileSync(filePath, output);
   return result;
 }
 
@@ -140,7 +299,7 @@ function migrateAll() {
     try {
       const result = migrateFile(file);
       const status = result.migrated > 0 ? '✅' : '⏭️';
-      console.log(`  ${status} ${result.agent}: 迁移 ${result.migrated}, 跳过 ${result.skipped}`);
+      console.log(`  ${status} ${result.agent} [${result.format}]: 迁移 ${result.migrated}, 跳过 ${result.skipped}`);
       totalMigrated += result.migrated;
       totalSkipped += result.skipped;
     } catch (e) {
@@ -162,7 +321,6 @@ if (require.main === module) {
   const args = process.argv.slice(2);
 
   if (args[0] === 'rollback') {
-    // 回滚
     if (!fs.existsSync(BACKUP_DIR)) {
       console.log('❌ 备份目录不存在，无法回滚');
       return;
@@ -173,19 +331,21 @@ if (require.main === module) {
     }
     console.log(`✅ 已回滚 ${backupFiles.length} 个文件`);
   } else if (args[0] === 'status') {
-    // 检查迁移状态
     const files = fs.readdirSync(MEMORY_DIR).filter(f => f.endsWith('.md') && !f.endsWith('.bak'));
-    let migrated = 0;
-    let pending = 0;
+    let yamlCount = 0;
+    let mdCount = 0;
+    let emptyCount = 0;
     for (const file of files) {
       const text = fs.readFileSync(path.join(MEMORY_DIR, file), 'utf-8');
-      if (text.includes('uri:')) migrated++;
-      else pending++;
+      const fmt = detectFormat(text);
+      if (fmt === 'yaml') yamlCount++;
+      else if (fmt === 'markdown') mdCount++;
+      else emptyCount++;
     }
-    console.log(`迁移状态: ${migrated} 已迁移, ${pending} 待迁移, 共 ${files.length} 个文件`);
+    console.log(`格式统计: ${yamlCount} YAML头, ${mdCount} Markdown, ${emptyCount} 空, 共 ${files.length} 个文件`);
   } else {
     migrateAll();
   }
 }
 
-module.exports = { migrateFile, migrateAll };
+module.exports = { migrateFile, migrateAll, detectFormat, parseMarkdownFormat };
