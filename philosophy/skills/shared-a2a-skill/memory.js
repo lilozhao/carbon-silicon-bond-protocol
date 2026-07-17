@@ -392,6 +392,39 @@ function summary(agentName, count = 5) {
 }
 
 /**
+ * 读取单条记忆的叙事内容（阿轩建议）
+ * 隐藏 YAML 结构，只返回人话
+ * @param {string} id - 记忆 ID
+ * @returns {string} 人话叙述
+ */
+function readNarrative(id) {
+  const entries = query({});
+  const entry = entries.find(e => e.id === id);
+  if (!entry) return `记忆 ${id} 未找到。`;
+
+  const lines = [];
+  const date = (entry.timestamp || '').slice(0, 10);
+
+  if (entry.source) {
+    lines.push(`**${date}**，与 **${entry.source}** 的记忆：`);
+  } else {
+    lines.push(`**${date}** 的记忆：`);
+  }
+  lines.push('');
+
+  const content = entry.content || '';
+  lines.push(content);
+
+  const tags = Array.isArray(entry.tags) ? entry.tags.filter(t => t) : [];
+  if (tags.length > 0) {
+    lines.push('');
+    lines.push(`*相关：${tags.join('、')}*`);
+  }
+
+  return lines.join('\n');
+}
+
+/**
  * 生成 MEMORY.md 风格的叙事（明德建议）
  * 输出人话，不是 JSON
  * @param {string} agentName - Agent 名
@@ -570,6 +603,11 @@ async function main() {
       if (!agent) { console.log('用法: memory.js narrative <agent>'); return; }
       console.log(narrative(agent)); break;
     }
+    case 'read': {
+      const id = args[1];
+      if (!id) { console.log('用法: memory.js read <id>'); return; }
+      console.log(readNarrative(id)); break;
+    }
     case 'update': {
       const id = args[1];
       const field = args[2];
@@ -617,7 +655,7 @@ module.exports = {
   // v0.2
   add, get, query, summary, delete: deleteById,
   // v0.3
-  abstract, update, history, narrative,
+  abstract, update, history, narrative, read: readNarrative,
   getPeer, setPeer, getPeerList,
 };
 
