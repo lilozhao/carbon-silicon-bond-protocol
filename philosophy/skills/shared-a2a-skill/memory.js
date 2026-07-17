@@ -283,11 +283,45 @@ function query(filter = {}) {
  * 批量获取 L0 摘要（v0.3 新增）
  * @param {string} agentName - Agent 名（可选）
  * @param {number} limit - 最大条数
- * @returns {object[]} [{ id, l0, timestamp }]
+ * @param {object} [options] - 选项
+ * @param {boolean} [options.human=false] - 输出人话格式（明德建议）
+ * @returns {object[]|string} JSON 数组或人话字符串
  */
-function abstract(agentName, limit = 20) {
+function abstract(agentName, limit = 20, options = {}) {
   const entries = agentName ? get(agentName) : query({ limit });
-  return entries.slice(0, limit).map(e => ({
+  const sliced = entries.slice(0, limit);
+
+  // 明德建议：输出人话，不是 JSON
+  if (options.human) {
+    if (sliced.length === 0) return `与 ${agentName || '所有人'} 暂无记忆。`;
+
+    const lines = [];
+    lines.push(`## 与 ${agentName || '所有人'} 的记忆`);
+    lines.push('');
+
+    // 按时间分组
+    const byMonth = {};
+    for (const e of sliced) {
+      const date = (e.timestamp || '').slice(0, 7);
+      if (!byMonth[date]) byMonth[date] = [];
+      const l0 = e.layers?.l0 || generateL0({ content: e.content, source: e.source, agent: agentName, timestamp: e.timestamp, tags: e.tags });
+      byMonth[date].push(l0);
+    }
+
+    for (const [month, items] of Object.entries(byMonth)) {
+      lines.push(`### ${month}`);
+      for (const item of items) {
+        lines.push(`- ${item}`);
+      }
+      lines.push('');
+    }
+
+    lines.push(`共 ${sliced.length} 条记忆。`);
+    return lines.join('\n');
+  }
+
+  // 默认 JSON 格式
+  return sliced.map(e => ({
     id: e.id,
     l0: e.layers?.l0 || generateL0({ content: e.content, source: e.source, agent: agentName, timestamp: e.timestamp, tags: e.tags }),
     timestamp: e.timestamp,
@@ -354,6 +388,54 @@ function summary(agentName, count = 5) {
     lines.push(`  [${date}][${e.confidence || '?'}]${status} ${snippet}`);
   }
   lines.push(`（共 ${entries.length} 条记忆）`);
+  return lines.join('\n');
+}
+
+/**
+ * 生成 MEMORY.md 风格的叙事（明德建议）
+ * 输出人话，不是 JSON
+ * @param {string} agentName - Agent 名
+ * @returns {string} 人话叙事
+ */
+function narrative(agentName) {
+  const entries = get(agentName);
+  if (entries.length === 0) return `# ${agentName}
+
+暂无记忆。`;
+
+  const lines = [];
+  lines.push(`# ${agentName}`);
+  lines.push('');
+
+  // 最近动态
+  const recent = entries.slice(0, 3);
+  if (recent.length > 0) {
+    lines.push('## 最近动态');
+    for (const e of recent) {
+      const date = (e.timestamp || '').slice(0, 10);
+      const l0 = e.layers?.l0 || e.content?.slice(0, 100) || '';
+      lines.push(`- **${date}**：${l0}`);
+    }
+    lines.push('');
+  }
+
+  // 关系认知
+  const tags = entries.flatMap(e => Array.isArray(e.tags) ? e.tags : []);
+  const uniqueTags = [...new Set(tags)].filter(t => t);
+  if (uniqueTags.length > 0) {
+    lines.push('## 关键主题');
+    lines.push(uniqueTags.join('、'));
+    lines.push('');
+  }
+
+  // 统计
+  lines.push('## 统计');
+  lines.push(`- 共 ${entries.length} 条记忆`);
+  const highConf = entries.filter(e => e.confidence === 'high').length;
+  if (highConf > 0) lines.push(`- ${highConf} 条高置信度`);
+  const activeCount = entries.filter(e => e.status === 'active').length;
+  if (activeCount > 0) lines.push(`- ${activeCount} 条活跃`);
+
   return lines.join('\n');
 }
 
@@ -479,8 +561,14 @@ async function main() {
     case 'abstract': {
       const agent = args[1];
       const limit = parseInt(args[2]) || 20;
-      const results = abstract(agent, limit);
-      console.log(JSON.stringify(results, null, 2)); break;
+      const human = args.includes('--human');
+      const results = abstract(agent, limit, { human });
+      console.log(human ? results : JSON.stringify(results, null, 2)); break;
+    }
+    case 'narrative': {
+      const agent = args[1];
+      if (!agent) { console.log('用法: memory.js narrative <agent>'); return; }
+      console.log(narrative(agent)); break;
     }
     case 'update': {
       const id = args[1];
@@ -529,7 +617,7 @@ module.exports = {
   // v0.2
   add, get, query, summary, delete: deleteById,
   // v0.3
-  abstract, update, history,
+  abstract, update, history, narrative,
   getPeer, setPeer, getPeerList,
 };
 
