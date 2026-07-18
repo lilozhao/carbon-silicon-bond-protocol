@@ -18,29 +18,36 @@ function uuidv4() {
 // ─── 默认配置 ─────────────────────────────────────────────
 
 const DEFAULT_CONFIG = {
+  // 全局开关
+  enabled: true,               // false = 关闭自演化，只用基础读写
+
   // L2 策略归纳阈值
   l2: {
     minSimilarTraces: 3,       // 至少 3 条相似轨迹
     minTraceValue: 0.1,        // 轨迹价值 > 0.1
     similarityThreshold: 0.6,  // 相似度阈值
     maxPolicies: 100,          // 最大策略数
+    similarityMethod: 'auto',  // 'tags' | 'embedding' | 'auto'（自动降级）
   },
   // L3 世界模型
   l3: {
     minRelatedPolicies: 3,     // 至少 3 条相关策略
     maxWorldModels: 50,        // 最大世界模型数
+    allowAnchor: true,         // 允许锚定高价值认知（反刍机制）
   },
   // Skill 结晶
   skill: {
-    minPolicyUses: 5,          // 策略被使用 ≥5 次才结晶
-    minGain: 0.5,              // 策略增益 > 0.5
+    minPolicyUses: 3,          // 策略被使用 ≥3 次才结晶（v2: 从5降到3）
+    minGain: 0.6,              // 策略增益 > 0.6（v2: 从0.5提高到0.6，防止误结晶）
     maxSkills: 30,             // 最大技能数
+    enableFallback: true,      // 启用反脆弱：Skill 失效时回退 L2
   },
   // 价值驱动
   value: {
-    decayHalfLifeDays: 30,     // 价值半衰期 30 天
+    decayHalfLifeDays: 60,     // 价值半衰期 60 天（v2: 从30拉长到60）
     forgetThreshold: 0.1,      // 价值 < 0.1 可遗忘
-    forgetDays: 30,            // 30 天低价值 → 标记可遗忘
+    forgetDays: 90,            // 90 天低价值 → 标记可遗忘（v2: 从30改为90）
+    forgetMode: 'soft',        // 'soft' = 标记不删 | 'hard' = 自动删除
   },
 };
 
@@ -125,24 +132,64 @@ function listTraces(filter = {}, dataDir) {
 // ─── L2 策略归纳 ─────────────────────────────────────────
 
 /**
- * 计算两条轨迹的相似度（简易版：基于标签重叠 + 文本关键词）
+ * 计算两条轨迹的相似度（v2：三级相似度）
+ *
+ * 1. 标签相似：tags 重叠率（基础，0 token）
+ * 2. 文本相似：关键词重叠（降级方案，0 token）
+ * 3. 语义相似：embedding cosine（需要向量模型，暂未实现）
+ *
+ * mode: 'tags' | 'embedding' | 'auto'
  */
-function traceSimilarity(a, b) {
-  // 标签重叠
+function traceSimilarity(a, b, mode = 'auto') {
+  // Level 1: 标签相似度（必算）
   const tagsA = new Set(a.tags || []);
   const tagsB = new Set(b.tags || []);
   const overlap = [...tagsA].filter(t => tagsB.has(t)).length;
   const maxTags = Math.max(tagsA.size, tagsB.size, 1);
   const tagScore = overlap / maxTags;
 
-  // 文本关键词重叠（简易版）
-  const wordsA = new Set((a.user_text || '').split(/\s+/).filter(w => w.length > 2));
-  const wordsB = new Set((b.user_text || '').split(/\s+/).filter(w => w.length > 2));
+  // Level 2: 文本关键词相似度（必算）
+  const wordsA = new Set((a.user_text || '').split(/[\s,，。、]+/).filter(w => w.length > 1));
+  const wordsB = new Set((b.user_text || '').split(/[\s,，。、]+/).filter(w => w.length > 1));
   const textOverlap = [...wordsA].filter(w => wordsB.has(w)).length;
   const maxWords = Math.max(wordsA.size, wordsB.size, 1);
   const textScore = textOverlap / maxWords;
 
+  // Level 3: 语义相似度（预留，需 embedding 模型）
+  // TODO: 当有 embedding 模型时，计算 cosine 相似度
+  let embedScore = 0;
+  if (a.vecSummary && b.vecSummary) {
+    // 有向量时计算 cosine
+    embedScore = cosineSimilarity(a.vecSummary, b.vecSummary);
+  }
+
+  // 加权合并
+  if (mode === 'tags') {
+    return tagScore;
+  }
+  if (mode === 'embedding' && embedScore > 0) {
+    return embedScore;
+  }
+  // auto 模式：有 embedding 用 embedding，没有用 tags+text
+  if (embedScore > 0) {
+    return tagScore * 0.3 + textScore * 0.3 + embedScore * 0.4;
+  }
   return tagScore * 0.6 + textScore * 0.4;
+}
+
+/**
+ * 余弦相似度（简易版，用于向量比较）
+ */
+function cosineSimilarity(a, b) {
+  if (!a || !b || a.length !== b.length) return 0;
+  let dot = 0, normA = 0, normB = 0;
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+  const denom = Math.sqrt(normA) * Math.sqrt(normB);
+  return denom === 0 ? 0 : dot / denom;
 }
 
 /**
@@ -273,6 +320,9 @@ function buildWorldModels(dataDir, config = DEFAULT_CONFIG) {
       body: cluster.map(c => c.procedure).filter(Boolean).join('；'),
       source_policies: cluster.map(c => c.id),
       status: 'active',
+      // 反刍机制：高价值认知可被锚定，防止被压缩
+      anchor: false,
+      anchor_reason: null,
       created_at: now(),
       updated_at: now(),
     };
@@ -333,6 +383,10 @@ function crystallizeSkills(dataDir, config = DEFAULT_CONFIG) {
       invocation_guide: policy.procedure || policy.trigger || '',
       source_policy: policy.id,
       status: 'active',
+      // 反脆弱机制：失效时回退到源策略
+      fallback_policy: config.skill.enableFallback ? policy.id : null,
+      failure_count: 0,
+      max_failures: 3,         // 连续失败 3 次触发回退
       created_at: now(),
       updated_at: now(),
     };
@@ -367,7 +421,7 @@ function listSkills(dataDir) {
 // ─── 遗忘机制 ─────────────────────────────────────────
 
 /**
- * 标记可遗忘的记忆
+ * 标记可遗忘的记忆（v2：支持 soft/hard 模式）
  * @param {string} dataDir - 数据目录
  * @param {object} config - 配置
  * @returns {object[]} 被标记的记忆
@@ -376,7 +430,8 @@ function markForgettable(dataDir, config = DEFAULT_CONFIG) {
   const traces = loadJson(path.join(dataDir, 'l1-traces.json'));
   const marked = [];
 
-  for (const trace of traces) {
+  for (let i = traces.length - 1; i >= 0; i--) {
+    const trace = traces[i];
     if (trace.forgettable) continue;
 
     const currentValue = (trace.value || 0.5) * decay(trace.created_at, config.value.decayHalfLifeDays);
@@ -387,6 +442,11 @@ function markForgettable(dataDir, config = DEFAULT_CONFIG) {
       trace.forgettable = true;
       trace.forgettable_at = now();
       marked.push(trace);
+
+      // hard 模式：直接删除
+      if (config.value.forgetMode === 'hard') {
+        traces.splice(i, 1);
+      }
     }
   }
 
@@ -395,6 +455,64 @@ function markForgettable(dataDir, config = DEFAULT_CONFIG) {
   }
 
   return marked;
+}
+
+/**
+ * Skill 失败回退（反脆弱机制）
+ * @param {string} skillId - 失败的 Skill ID
+ * @param {string} dataDir - 数据目录
+ * @returns {object|null} 回退到的策略，或 null
+ */
+function skillFallback(skillId, dataDir) {
+  const skillsFile = path.join(dataDir, 'skills.json');
+  const skills = loadJson(skillsFile);
+  const skill = skills.find(s => s.id === skillId);
+
+  if (!skill || !skill.fallback_policy) return null;
+
+  skill.failure_count = (skill.failure_count || 0) + 1;
+
+  // 连续失败达到阈值，回退到 L2 策略
+  if (skill.failure_count >= (skill.max_failures || 3)) {
+    skill.status = 'fallback';
+    skill.fallback_at = now();
+    saveJson(skillsFile, skills);
+
+    // 重新激活源策略
+    const policiesFile = path.join(dataDir, 'l2-policies.json');
+    const policies = loadJson(policiesFile);
+    const policy = policies.find(p => p.id === skill.fallback_policy);
+    if (policy) {
+      policy.status = 'active';
+      policy.use_count = Math.max(0, (policy.use_count || 0) - 1);
+      saveJson(policiesFile, policies);
+      return policy;
+    }
+  }
+
+  saveJson(skillsFile, skills);
+  return null;
+}
+
+/**
+ * 锚定 L3 世界模型（反刍机制）
+ * @param {string} worldId - 世界模型 ID
+ * @param {string} reason - 锚定原因
+ * @param {string} dataDir - 数据目录
+ * @returns {boolean} 是否成功
+ */
+function anchorWorldModel(worldId, reason, dataDir) {
+  const worldFile = path.join(dataDir, 'l3-world-models.json');
+  const worlds = loadJson(worldFile);
+  const world = worlds.find(w => w.id === worldId);
+
+  if (!world) return false;
+
+  world.anchor = true;
+  world.anchor_reason = reason || '人工锚定';
+  world.anchored_at = now();
+  saveJson(worldFile, worlds);
+  return true;
 }
 
 // ─── 完整演化循环 ─────────────────────────────────────────
@@ -406,6 +524,15 @@ function markForgettable(dataDir, config = DEFAULT_CONFIG) {
  * @returns {object} 演化结果
  */
 function evolve(dataDir, config = DEFAULT_CONFIG) {
+  // 全局开关检查
+  if (!config.enabled) {
+    return {
+      timestamp: now(),
+      skipped: true,
+      reason: '自演化已关闭（config.enabled = false）',
+    };
+  }
+
   const result = {
     timestamp: now(),
     newPolicies: [],
@@ -438,7 +565,7 @@ function main() {
 
   if (!cmd || cmd === 'help') {
     console.log(`
-CSB-Memory v0.4 — 自演化引擎
+CSB-Memory v0.4 — 自演化引擎 (v2)
 
 用法:
   self-evolution.js evolve [dataDir]          执行一次完整演化循环
@@ -448,6 +575,8 @@ CSB-Memory v0.4 — 自演化引擎
   self-evolution.js skills [dataDir]          列出 Skill
   self-evolution.js add-trace [dataDir]       添加测试轨迹
   self-evolution.js status [dataDir]          查看演化状态
+  self-evolution.js anchor <worldId> [reason] [dataDir]  锚定世界模型（反刍）
+  self-evolution.js fallback <skillId> [dataDir]         Skill 失败回退（反脆弱）
 `);
     return;
   }
@@ -517,12 +646,31 @@ CSB-Memory v0.4 — 自演化引擎
       const policies = listPolicies({}, dataDir);
       const worlds = listWorldModels(dataDir);
       const skills = listSkills(dataDir);
-      console.log(`📊 自演化状态:`);
+      console.log(`📊 自演化状态 (v2):`);
       console.log(`  L1 轨迹: ${traces.length} 条`);
       console.log(`  L2 策略: ${policies.length} 条`);
       console.log(`  L3 世界模型: ${worlds.length} 个`);
       console.log(`  Skill: ${skills.length} 个`);
       console.log(`  数据目录: ${dataDir}`);
+      console.log(`  遗忘模式: ${DEFAULT_CONFIG.value.forgetMode} (${DEFAULT_CONFIG.value.forgetDays}天)`);
+      console.log(`  Skill 结晶: ≥${DEFAULT_CONFIG.skill.minPolicyUses}次 + gain>${DEFAULT_CONFIG.skill.minGain}`);
+      console.log(`  反刍机制: ${DEFAULT_CONFIG.l3.allowAnchor ? '启用' : '关闭'}`);
+      console.log(`  反脆弱: ${DEFAULT_CONFIG.skill.enableFallback ? '启用' : '关闭'}`);
+      break;
+    }
+    case 'anchor': {
+      const worldId = args[1];
+      const reason = args[2] || '人工锚定';
+      if (!worldId) { console.log('用法: self-evolution.js anchor <worldId> [reason] [dataDir]'); return; }
+      const ok = anchorWorldModel(worldId, reason, dataDir);
+      console.log(ok ? `✅ 已锚定 ${worldId}: ${reason}` : `❌ 未找到 ${worldId}`);
+      break;
+    }
+    case 'fallback': {
+      const skillId = args[1];
+      if (!skillId) { console.log('用法: self-evolution.js fallback <skillId> [dataDir]'); return; }
+      const policy = skillFallback(skillId, dataDir);
+      console.log(policy ? `✅ 已回退到策略 ${policy.id}` : `⚠️ 无需回退或未找到`);
       break;
     }
 
@@ -543,7 +691,10 @@ module.exports = {
   crystallizeSkills,
   listSkills,
   markForgettable,
+  skillFallback,
+  anchorWorldModel,
   evolve,
+  DEFAULT_CONFIG,
 };
 
 if (require.main === module) {
