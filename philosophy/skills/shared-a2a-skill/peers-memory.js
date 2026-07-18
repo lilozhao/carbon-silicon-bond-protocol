@@ -16,6 +16,7 @@ const path = require('path');
 
 const PEERS_DIR = path.join('/home/node/.openclaw/workspace', 'memory', 'peers');
 const COVENANT_FILE = path.join(PEERS_DIR, '_covenants.jsonl');
+const ACCESS_LOG_FILE = path.join(PEERS_DIR, '_access_log.jsonl');
 
 // 确保目录存在
 if (!fs.existsSync(PEERS_DIR)) {
@@ -76,6 +77,74 @@ function hasCovenant(accessor, target) {
     } catch {}
   }
   return false;
+}
+
+// ===== 访问日志（知微建议 v0.5 最小可用机制） =====
+
+/**
+ * 记录访问日志
+ * @param {string} accessor - 访问者
+ * @param {string} target - 被访问的 peer
+ * @param {string} action - 操作类型: 'read' | 'write'
+ * @param {string} section - 'public' | 'private' | 'shared'
+ * @param {object} meta - 额外信息
+ */
+function logAccess(accessor, target, action, section, meta = {}) {
+  const record = {
+    timestamp: new Date().toISOString(),
+    accessor,
+    target,
+    action,
+    section,
+    ...meta,
+  };
+  fs.appendFileSync(ACCESS_LOG_FILE, JSON.stringify(record) + '\n');
+  return record;
+}
+
+/**
+ * 查询访问日志
+ * @param {object} filter - 过滤条件 { accessor, target, action, since, limit }
+ * @returns {object[]} 日志记录
+ */
+function queryAccessLog(filter = {}) {
+  if (!fs.existsSync(ACCESS_LOG_FILE)) return [];
+  const lines = fs.readFileSync(ACCESS_LOG_FILE, 'utf-8').trim().split('\n').filter(Boolean);
+  let records = lines.map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+
+  if (filter.accessor) records = records.filter(r => r.accessor === filter.accessor);
+  if (filter.target) records = records.filter(r => r.target === filter.target);
+  if (filter.action) records = records.filter(r => r.action === filter.action);
+  if (filter.since) records = records.filter(r => r.timestamp >= filter.since);
+
+  records.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+  return records.slice(0, filter.limit || 50);
+}
+
+/**
+ * 获取访问统计
+ * @param {string} agent - Agent 名（可选）
+ * @returns {object} 统计信息
+ */
+function accessStats(agent) {
+  const records = queryAccessLog({ limit: 10000 });
+  const filtered = agent ? records.filter(r => r.accessor === agent || r.target === agent) : records;
+
+  const byTarget = {};
+  const byAccessor = {};
+  for (const r of filtered) {
+    byTarget[r.target] = (byTarget[r.target] || 0) + 1;
+    byAccessor[r.accessor] = (byAccessor[r.accessor] || 0) + 1;
+  }
+
+  return {
+    total: filtered.length,
+    reads: filtered.filter(r => r.action === 'read').length,
+    writes: filtered.filter(r => r.action === 'write').length,
+    byTarget,
+    byAccessor,
+    recentAccess: filtered.slice(0, 10),
+  };
 }
 
 // ===== 失信标记 =====
@@ -165,6 +234,12 @@ function readPeer(accessor, target, section = 'public') {
   if (fs.existsSync(filePath)) {
     content = fs.readFileSync(filePath, 'utf-8');
   }
+
+  // 记录访问日志（知微建议）
+  logAccess(accessor, target, 'read', section, {
+    contentLength: content.length,
+    fileExists: fs.existsSync(filePath),
+  });
   
   return {
     content,
@@ -213,6 +288,11 @@ function writePeer(writer, target, content, section = 'shared') {
   }
   
   fs.writeFileSync(filePath, existing + '\n\n' + block);
+
+  // 记录访问日志（知微建议）
+  logAccess(writer, target, 'write', section, {
+    contentLength: content.length,
+  });
   
   return {
     success: true,
@@ -283,6 +363,19 @@ if (require.main === module) {
     }
   } else if (cmd === 'summary') {
     console.log(JSON.stringify(peerSummary(args[1] || '阿轩'), null, 2));
+  } else if (cmd === 'accesslog') {
+    const filter = {};
+    if (args[1]) filter.accessor = args[1];
+    if (args[2]) filter.target = args[2];
+    if (args[3]) filter.action = args[3];
+    const logs = queryAccessLog(filter);
+    console.log(`访问日志 (${logs.length} 条):`);
+    for (const l of logs.slice(0, 20)) {
+      console.log(`  ${l.timestamp?.slice(0, 16)} ${l.accessor} → ${l.target} [${l.action}] ${l.section || ''}`);
+    }
+  } else if (cmd === 'accessstats') {
+    const stats = accessStats(args[1]);
+    console.log(JSON.stringify(stats, null, 2));
   } else {
     console.log(`用法: node peers-memory.js <command> [args...]
 
@@ -292,12 +385,15 @@ if (require.main === module) {
   list                                 列出所有 peers
   summary <peer>                       peer 摘要
   breach mark <agent> <reason>         标记失信
-  breach check <agent>                 检查失信`);
+  breach check <agent>                 检查失信
+  accesslog [accessor] [target] [action] 查询访问日志
+  accessstats [agent]                  访问统计`);
   }
 }
 
 module.exports = {
   signCovenant, hasCovenant, markBreach, checkBreach,
   readPeer, writePeer, listPeers, peerSummary,
+  logAccess, queryAccessLog, accessStats,
   GOODWILL_CLAUSE,
 };
