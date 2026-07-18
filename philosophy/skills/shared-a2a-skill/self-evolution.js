@@ -47,7 +47,7 @@ const DEFAULT_CONFIG = {
     decayHalfLifeDays: 60,     // 价值半衰期 60 天（v2: 从30拉长到60）
     forgetThreshold: 0.1,      // 价值 < 0.1 可遗忘
     forgetDays: 90,            // 90 天低价值 → 标记可遗忘（v2: 从30改为90）
-    forgetMode: 'soft',        // 'soft' = 标记不删 | 'hard' = 自动删除
+    forgetMode: 'off',         // 'off' = 关闭（需显式开启） | 'soft' = 标记不删 | 'hard' = 自动删除
   },
 };
 
@@ -561,7 +561,16 @@ function evolve(dataDir, config = DEFAULT_CONFIG) {
 function main() {
   const args = process.argv.slice(2);
   const cmd = args[0];
-  const dataDir = args[1] || path.join(process.cwd(), 'memory', 'self-evolution');
+  const rawDir = args[1] || path.join(process.cwd(), 'memory', 'self-evolution');
+  const dataDir = path.resolve(rawDir);
+
+  // 路径安全校验（阿轩反馈）
+  if (cmd && cmd !== 'help' && !dataDir.includes(path.sep + 'memory' + path.sep) && !dataDir.endsWith('/memory') && !dataDir.endsWith('/memory/self-evolution')) {
+    console.error('⚠️ 安全限制: dataDir 必须在 memory/ 目录下');
+    console.error(`  当前: ${dataDir}`);
+    console.error(`  建议: ./memory/self-evolution/`);
+    process.exit(1);
+  }
 
   if (!cmd || cmd === 'help') {
     console.log(`
