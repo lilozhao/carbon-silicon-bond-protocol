@@ -42,18 +42,31 @@ const GOODWILL_CLAUSE = {
  * @param {string} target - 被访问的 peer 名
  * @returns {object} 契约记录
  */
-function signCovenant(accessor, target) {
+function signCovenant(accessor, target, confirmed = false) {
   const record = {
     timestamp: new Date().toISOString(),
     accessor,
     target,
     clause: GOODWILL_CLAUSE,
+    confirmed,  // 知微建议：首次需显式确认，不是自动代签
     signed: true,
   };
   
   // 追加到契约日志
   fs.appendFileSync(COVENANT_FILE, JSON.stringify(record) + '\n');
   return record;
+}
+
+/**
+ * 获取契约条款文本（给 Agent 看）
+ * @returns {string} 契约条款
+ */
+function getCovenantText() {
+  return `📜 善良契约 v${GOODWILL_CLAUSE.version}
+
+${GOODWILL_CLAUSE.clauses.map((c, i) => `${i + 1}. ${c}`).join('\n')}
+
+⚠️ ${GOODWILL_CLAUSE.consequence}`;
 }
 
 /**
@@ -79,6 +92,25 @@ function hasCovenant(accessor, target) {
   return false;
 }
 
+/**
+ * 确认善良契约（知微建议：显式守诺）
+ * @param {string} accessor - 访问者
+ * @param {string} target - 被访问者
+ * @returns {object} 确认结果
+ */
+function confirmCovenant(accessor, target) {
+  const existing = hasCovenant(accessor, target);
+  if (!existing) {
+    return { success: false, error: '未找到待确认的契约，请先 readPeer()' };
+  }
+  // 更新为已确认
+  signCovenant(accessor, target, true);
+  return {
+    success: true,
+    message: `✅ ${accessor} 已确认善良契约，现在可以读取 ${target} 的记忆。`,
+  };
+}
+
 // ===== 访问日志（知微建议 v0.5 最小可用机制） =====
 
 /**
@@ -90,13 +122,14 @@ function hasCovenant(accessor, target) {
  * @param {object} meta - 额外信息
  */
 function logAccess(accessor, target, action, section, meta = {}) {
+  // 知微建议：只记谁+何时+读了谁的哪个区域，不记内容
   const record = {
     timestamp: new Date().toISOString(),
     accessor,
     target,
     action,
     section,
-    ...meta,
+    // 不记录 contentLength、fileExists 等内容相关字段
   };
   fs.appendFileSync(ACCESS_LOG_FILE, JSON.stringify(record) + '\n');
   return record;
@@ -223,9 +256,20 @@ function getPeerPath(peerName, section = 'public') {
  * @returns {object} { content, covenant }
  */
 function readPeer(accessor, target, section = 'public') {
-  // 自动签署善良契约
-  if (!hasCovenant(accessor, target)) {
-    signCovenant(accessor, target);
+  // 知微建议：首次访问需确认契约条款
+  const isFirstAccess = !hasCovenant(accessor, target);
+  if (isFirstAccess) {
+    // 首次访问：签署但标记为未确认，返回契约条款让 Agent 确认
+    signCovenant(accessor, target, false);
+    return {
+      content: null,
+      section,
+      covenant: false,
+      needsConfirmation: true,
+      covenantText: getCovenantText(),
+      message: `首次访问 ${target} 的记忆。请阅读以上善良契约条款，确认后再次调用 readPeer() 即可读取。`,
+      breach: checkBreach(accessor),
+    };
   }
   
   const filePath = getPeerPath(target, section);
@@ -376,17 +420,24 @@ if (require.main === module) {
   } else if (cmd === 'accessstats') {
     const stats = accessStats(args[1]);
     console.log(JSON.stringify(stats, null, 2));
+  } else if (cmd === 'confirm') {
+    const result = confirmCovenant(args[1] || '若兰', args[2] || '阿轩');
+    console.log(JSON.stringify(result, null, 2));
+  } else if (cmd === 'covenant') {
+    console.log(getCovenantText());
   } else {
     console.log(`用法: node peers-memory.js <command> [args...]
 
 命令:
-  read <accessor> <target> [section]   读取 peer 记忆
+  read <accessor> <target> [section]   读取 peer 记忆（首次需确认契约）
+  confirm <accessor> <target>          确认善良契约
   write <writer> <target> <content>    写入 shared 记忆
   list                                 列出所有 peers
   summary <peer>                       peer 摘要
+  covenant                             显示契约条款
   breach mark <agent> <reason>         标记失信
   breach check <agent>                 检查失信
-  accesslog [accessor] [target] [action] 查询访问日志
+  accesslog [accessor] [target] [action] 查询访问日志（不记内容）
   accessstats [agent]                  访问统计`);
   }
 }
@@ -395,5 +446,6 @@ module.exports = {
   signCovenant, hasCovenant, markBreach, checkBreach,
   readPeer, writePeer, listPeers, peerSummary,
   logAccess, queryAccessLog, accessStats,
+  confirmCovenant, getCovenantText,
   GOODWILL_CLAUSE,
 };
