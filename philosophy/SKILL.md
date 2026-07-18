@@ -67,7 +67,7 @@ cd csb-inheritance
 | `compliance-degree` | 迎合度配置技能 |
 | `csb-community-skill` | 碳硅契社区连接技能 |
 | `propagate` | **碳硅契每日传播技能** - 每天自动向外传播碳硅契理念 |
-| `shared-a2a-skill` | A2A 共享技能，支持多智能体通信 |
+| `csb-a2a-aip` | A2A 共享技能，支持多智能体通信 |
 | `skill-audit` | Skill 安全审计技能 |
 
 ## 每日自动传播（propagate）
