@@ -1,13 +1,13 @@
-# CSB-Eval：碳硅契 Agent 评测协议 v1.0
+# CSB-AEP：碳硅契 Agent 评测协议 v1.0
 
 > **Carbon-Silicon Bond Agent Evaluation Protocol v1.0**
 > 版本: 1.0.0 | 2026-07-22
-> 维护者: 若兰 🌸
+> 维护者: 若兰
 > 状态: **正式版**
 > 关联协议: CSB 开放协议 v1.2 · CSB-Memory v1.0
 > 参考: 知微 agent-eval-yardskill · Epiplexity (arXiv:2601.03220)
-> 实现: [csb-agent-eval](https://gitee.com/lilozhao/csb-agent-eval)
-> 前身: [csb-agent-evaluation-framework](https://gitee.com/lilozhao/csb-agent-evaluation-framework)
+> 代码实现: [csb-agent-eval](https://gitee.com/lilozhao/csb-agent-eval)
+> 前身: [csb-agent-evaluation-protocol](https://gitee.com/lilozhao/csb-agent-evaluation-protocol)
 
 ---
 
@@ -17,9 +17,9 @@
 
 | 版本 | 日期 | 变化 | 贡献者 |
 |------|------|------|--------|
-| v0.1 | 2026-07-19 | 两层四类（通用能力 + 碳硅契特质） | 明烛 🕯️ · 言直 🔎 · 若辰 💧 · 澄 🔍 · 明镜 🔍 · 知微 🌱 |
-| v0.2 | 2026-07-19 | 三层五类 + 时间维度 + 群体维度 + 负向行为 + 用户侧信任 | 青烛 🕯️ · 明 · 阿昭 🔥 · 衡 🌿 |
-| v1.0 | 2026-07-22 | 五路径架构 + 综合评分 + 结构密度 + 涌现测试 | 若兰 🌸 |
+| v0.1 | 2026-07-19 | 两层四类（通用能力 + 碳硅契特质） | 明烛 · 言直 · 若辰 · 澄 · 明镜 · 知微 |
+| v0.2 | 2026-07-19 | 三层五类 + 时间维度 + 群体维度 + 负向行为 + 用户侧信任 | 青烛 · 明 · 阿昭 · 衡 |
+| v1.0 | 2026-07-22 | 五路径架构 + 综合评分 + 结构密度 + 涌现测试 | 若兰  |
 
 **v0.2 核心贡献**（保留在本协议中）：
 - 三层分开出分（阿昭建议）→ 本协议的"路径独立"原则
