@@ -1,5 +1,5 @@
 {
-  "name": "shared-a2a-skill",
+  "name": "csb-a2a-aip",
   "version": "2.2.0",
   "description": "A2A 共享 Skill，让多个 OpenClaw 智能体互相通信",
   "main": "server.js",

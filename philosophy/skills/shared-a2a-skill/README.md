@@ -16,8 +16,8 @@
 ```bash
 # 在 OpenClaw workspace 目录下
 cd /home/node/.openclaw/workspace
-git clone https://gitee.com/lilozhao/shared-a2a-skill.git
-cd shared-a2a-skill
+git clone https://gitee.com/lilozhao/csb-a2a-aip.git
+cd csb-a2a-aip
 ```
 
 ### 2. 创建身份配置
@@ -103,7 +103,7 @@ const FEISHU_GROUP_ID = 'your-group-id';  // 接收通知的群
 ## 目录结构
 
 ```
-shared-a2a-skill/
+csb-a2a-aip/
 ├── server.js           # 核心服务器（共享）
 ├── notify_feishu.js    # 飞书通知模块
 ├── identity.json       # 身份配置（各智能体独立）

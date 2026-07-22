@@ -165,7 +165,7 @@ node scripts/csb-errors-test.js
 
 | 文件 | 位置 |
 |------|------|
-| 错误码模块 | `shared-a2a-skill/csb-aip/src/errors.js` |
+| 错误码模块 | `csb-a2a-aip/csb-aip/src/errors.js` |
 | 测试脚本 | `scripts/csb-errors-test.js` |
 | 本说明书 | `docs/csb-error-codes-guide.md` |
 

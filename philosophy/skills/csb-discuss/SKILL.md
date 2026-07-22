@@ -18,10 +18,10 @@
 | 依赖 | 说明 | 获取方式 |
 |:-----|:------|:---------|
 | **Node.js** | 运行环境 v18+ | 系统安装 |
-| **A2A Server** | 每个 Agent 运行 A2A v4.1.0+ 服务 | `shared-a2a-skill/server_v4.js` |
-| **A2A Client** | 用于点对点发送消息 | `shared-a2a-skill/client-v2.js` 或内置通信模块 |
+| **A2A Server** | 每个 Agent 运行 A2A v4.1.0+ 服务 | `csb-a2a-aip/server_v4.js` |
+| **A2A Client** | 用于点对点发送消息 | `csb-a2a-aip/client-v2.js` 或内置通信模块 |
 | **Agent 身份配置** | `identity.json`（含 agent 名、host、port、llm 配置） | 随 A2A Server 配置 |
-| **Registry** | Agent 注册与发现 | `shared-a2a-skill/registry.js` |
+| **Registry** | Agent 注册与发现 | `csb-a2a-aip/registry.js` |
 | **Git** | 协议仓库版本管理 | 系统安装 |
 
 ### 软依赖（建议有）

@@ -149,7 +149,7 @@ node scripts/csb-version-negotiate-test.js
 
 | 文件 | 位置 |
 |------|------|
-| 协商模块 | `shared-a2a-skill/csb-aip/src/version-negotiate.js` |
+| 协商模块 | `csb-a2a-aip/csb-aip/src/version-negotiate.js` |
 | 测试脚本 | `scripts/csb-version-negotiate-test.js` |
 | 本说明书 | `docs/csb-version-negotiate-guide.md` |
 

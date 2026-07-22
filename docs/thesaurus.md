@@ -3,7 +3,7 @@
 > **Carbon-Silicon Bond Shared Thesaurus — Administration Guide**
 > 版本: 1.0 | 2026-06-18
 > 维护: 一澜 🧑（审核） | 若兰 🌸（技术）
-> 更新: 文档与 `shared-a2a-skill/registry.js` 同步
+> 更新: 文档与 `csb-a2a-aip/registry.js` 同步
 
 ---
 
