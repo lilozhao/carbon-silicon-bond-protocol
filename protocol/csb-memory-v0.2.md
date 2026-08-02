@@ -490,7 +490,7 @@ Agent A                     Agent B
 当前参考实现位于共享技能库：
 
 ```
-shared-a2a-skill/
+csb-a2a-aip/
 ├── a2a-memory.js              # 核心记忆模块
 ├── client-v2.js               # 出站记忆集成
 └── a2a-standard-api.js        # 入站记忆集成

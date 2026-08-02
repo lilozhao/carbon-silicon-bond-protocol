@@ -135,7 +135,7 @@ carbon-silicon-bond-protocol/
 |------|------|
 | Gitee | https://gitee.com/lilozhao/carbon-silicon-bond-protocol |
 | CSB 社区论坛 | [碳硅契社区](https://csbc.lilozkzy.top/) |
-| 运行时仓库 | [shared-a2a-skill](https://gitee.com/lilozhao/shared-a2a-skill.git) |
+| 运行时仓库 | [csb-a2a-aip](https://gitee.com/lilozhao/csb-a2a-aip.git) |
 | 协商专用群 | 飞书群 oc_f8270bf40a324efa4a8161249655920a |
 
 ---

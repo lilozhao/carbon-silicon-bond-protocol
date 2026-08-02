@@ -8,7 +8,7 @@ const {
   bondNotFound, warmthTooLow, lineageBroken, grantExpired,
   extensionParseError, versionIncompatible, scopeDenied,
   attachToResponse, hasCSBError, listErrorCodes
-} = require('../shared-a2a-skill/csb-aip/src/errors.js');
+} = require('../csb-a2a-aip/csb-aip/src/errors.js');
 
 let passed = 0;
 let failed = 0;

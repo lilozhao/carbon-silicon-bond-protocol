@@ -7,7 +7,7 @@ const {
   compareVersion, getHighest, getIntersectionHighest,
   createVersionOffer, negotiate, quickNegotiate,
   buildNegotiateMessage, buildNegotiateResponse, isNegotiateMessage
-} = require('../shared-a2a-skill/csb-aip/src/version-negotiate.js');
+} = require('../csb-a2a-aip/csb-aip/src/version-negotiate.js');
 
 let passed = 0;
 let failed = 0;
