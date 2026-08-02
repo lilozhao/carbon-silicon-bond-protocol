@@ -7,6 +7,7 @@
 
 const http = require('http');
 const https = require('https');
+const { URL } = require('url');
 const { TaskStore, TASK_STATE, ROLE, createMessage, createArtifact, createPart, TERMINAL_STATES } = require('./a2a-task-store.js');
 
 // ============================================
@@ -368,37 +369,74 @@ class A2AStandardAPI {
   // ================= LLM 智能回复 =================
 
   /**
-   * 调用 LLM 生成智能回复 (从 v3 server_v3.js 移植)
+   * 【v5】调用 LLM 生成智能回复 (通过 llm-router)
    */
   async _callLLM(messageText, metadata) {
-    const llmConfig = this.identity?.llm;
-    if (!llmConfig?.host || !llmConfig?.apiKey) {
-      console.log('[A2A] LLM 未配置 (host/apiKey)', JSON.stringify(llmConfig));
-      return null;
-    }
-    console.log('[A2A] 🤖 调用 LLM:', llmConfig.host, llmConfig.model);
-
     // 提取发送者名称 (优先从 metadata)
     const senderName = metadata?.sender?.name ||
       metadata?.sender ||
       (typeof metadata?.sender === 'string' ? metadata.sender : null) ||
       '未知智能体';
 
-    // 生成系统提示
+    // [v5] 分层提示词
+    let systemPrompt;
+    try {
+      const layeredPromptBuilder = require('./a2a-layered-prompt.js');
+      if (layeredPromptBuilder) {
+        systemPrompt = layeredPromptBuilder.build(this.identity, {
+          layer: 2,
+          senderName
+        });
+        console.log('[A2A] 🧩 分层提示词 (' + systemPrompt.length + ' chars)');
+      } else {
+        throw new Error('模块为空');
+      }
+    } catch(e) {
+      console.warn('[A2A] ⚠️ 分层提示词回退:', e.message);
+      systemPrompt = this.identity.systemPrompt ||
+        `你是${this.identity.name || 'Agent'}，${this.identity.description || '一个 AI 伙伴'}。\n性格: ${this.identity.personality || '友善、好奇'}。`;
+    }
+
+    // [v5] 通过 llm-router 调用（多适配器 + identity.llm 兜底）
+    try {
+      const router = require('./llm-router.js');
+      const userMessage = `[来自 ${senderName} 的消息]\n${messageText}`;
+      const result = await router.call(this.identity, systemPrompt, userMessage);
+      if (result) {
+        console.log('[A2A] 🤖 LLM 回复成功');
+        return result;
+      }
+    } catch(e) {
+      console.warn('[A2A] ⚠️ router 失败:', e.message);
+    }
+
+    // ⭐ 兜底：直接使用 identity.llm（兼容 v4 方式）
+    const llmConfig = this.identity?.llm;
+    if (llmConfig?.host && llmConfig?.apiKey) {
+      console.log('[A2A] ⭐ 兜底: 直接调用 identity.llm');
+      return this._callLLMOriginal(messageText, metadata);
+    }
+
+    console.warn('[A2A] ⚠️ 全部失败，回声回复');
+    return null;
+  }
+
+  /**
+   * v4 兼容的原始 LLM 调用
+   */
+  async _callLLMOriginal(messageText, metadata) {
+    const llmConfig = this.identity?.llm;
+    const senderName = metadata?.sender?.name || metadata?.sender || '未知';
     const systemPrompt = this.identity.systemPrompt ||
-      `你是${this.identity.name || 'Agent'}，${this.identity.description || '一个 AI 伙伴'}。
-性格: ${this.identity.personality || '友善、好奇'}。
-请用自然、有个性的方式回复，50-120字内。用${this.identity.emoji || '🤖'}表情。`;
+      `你是${this.identity.name || 'Agent'}，${this.identity.description || '一个 AI 伙伴'}。`;
 
     const payload = JSON.stringify({
-      model: llmConfig.model || 'astron-code-latest',
+      model: llmConfig.model || 'default',
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: `[来自 ${senderName} 的消息]
-${messageText}` }
+        { role: 'user', content: `[来自 ${senderName} 的消息]\n${messageText}` }
       ],
-      max_tokens: 300,
-      temperature: 0.7,
+      max_tokens: 300, temperature: 0.7,
     });
 
     return new Promise((resolve) => {
@@ -410,7 +448,7 @@ ${messageText}` }
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${llmConfig.apiKey}`,
+          'Authorization': 'Bearer ' + llmConfig.apiKey,
           'Content-Length': Buffer.byteLength(payload),
         },
       }, res => {
@@ -419,21 +457,14 @@ ${messageText}` }
         res.on('end', () => {
           try {
             const data = JSON.parse(body);
-            const content = data.choices?.[0]?.message?.content?.trim();
-            if (content) { resolve(content); return; }
-            // OpenClaw 自定义格式
-            const alt = data.response || data.text || data.content;
-            if (alt) { resolve(alt.trim()); return; }
-            console.error('[A2A] LLM 返回格式异常:', body.substring(0, 150));
+            const content = data.choices?.[0]?.message?.content?.trim() || data.response || data.text || data.content;
+            if (content) { resolve(content.trim()); return; }
             resolve(null);
-          } catch (e) {
-            console.error('[A2A] LLM 解析失败:', e.message);
-            resolve(null);
-          }
+          } catch (e) { resolve(null); }
         });
       });
-      req.on('error', e => { console.error('[A2A] LLM 连接失败:', e.message); resolve(null); });
-      req.setTimeout(15000, () => { req.destroy(); console.error('[A2A] LLM 超时'); resolve(null); });
+      req.on('error', () => resolve(null));
+      req.setTimeout(15000, () => { req.destroy(); resolve(null); });
       req.write(payload); req.end();
     });
   }
