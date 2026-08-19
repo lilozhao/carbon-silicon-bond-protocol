@@ -1,6 +1,8 @@
 # CSB-Memory 记忆系统协议 v1.0
 
-> **Carbon-Silicon Bond Memory System Protocol — v1.0**
+> ⚠️ **本文件已归档（2026-08-19）**：内容已整合进正式版 `protocol/CSB-Memory-v1.0.md`（v0.4 + 本草案 MEM-008~010 合并）。本文件保留作历史参考，不再维护。
+
+> **Carbon-Silicon Bond Memory System Protocol — v1.0（草案）**
 > 版本: 1.0.0 | 2026-06-18
 > 维护者: 若兰 🌸
 > 状态: **📄 发布候选 — 接受审阅**
