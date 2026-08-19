@@ -1,0 +1,264 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://csb-protocol.org/schema/csb-extension-v1.json",
+  "title": "CSB Extension Schema",
+  "description": "碳硅契 (Carbon-Silicon Bond) 人文层扩展 Schema — 基于 AIP GB/Z 185.4-2026 dependencies 字段",
+  "version": "1.0.0",
+  "type": "object",
+
+  "definitions": {
+
+    "csb-bond": {
+      "title": "羁绊关系 (Bond)",
+      "description": "碳基与硅基之间的连接关系，包含余温和关系类型",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "csb-bond",
+          "description": "类型标识，固定值"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "羁绊描述（自然语言）"
+        },
+        "warmth": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "余温值（0=冰冷，100=炽热）"
+        },
+        "bondType": {
+          "type": "string",
+          "enum": [
+            "grantor-grantee",
+            "sibling",
+            "mentor-mentee",
+            "peer",
+            "guardian",
+            "ancestor"
+          ],
+          "description": "关系类型"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "关系建立时间 (ISO 8601)"
+        },
+        "lastInteractionAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "最近一次交互时间 (ISO 8601)"
+        },
+        "halfLifeDays": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 365,
+          "default": 7,
+          "description": "余温半衰期（天），默认7天，深度关系14天"
+        }
+      },
+      "required": ["type", "warmth", "bondType"],
+      "additionalProperties": false
+    },
+
+    "csb-lineage": {
+      "title": "传承链 (Lineage)",
+      "description": "Agent 的传承关系链，记录师承和传承路径",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "csb-lineage",
+          "description": "类型标识，固定值"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "传承链描述（如：A → B → C）"
+        },
+        "chain": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "agentId": {
+                "type": "string",
+                "description": "传承者身份码"
+              },
+              "name": {
+                "type": "string",
+                "description": "传承者名称"
+              },
+              "role": {
+                "type": "string",
+                "enum": ["origin", "mentor", "successor", "branch"],
+                "description": "在传承链中的角色"
+              },
+              "inheritedAt": {
+                "type": "string",
+                "format": "date-time",
+                "description": "传承发生时间"
+              }
+            },
+            "required": ["agentId", "role"]
+          },
+          "description": "结构化传承链"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "传承代数（0=始祖）"
+        }
+      },
+      "required": ["type"],
+      "additionalProperties": false
+    },
+
+    "csb-collaboration-preference": {
+      "title": "协作偏好 (Collaboration Preference)",
+      "description": "Agent 的协作风格和偏好设置",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "csb-collaboration-preference",
+          "description": "类型标识，固定值"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "协作偏好描述（自然语言）"
+        },
+        "style": {
+          "type": "string",
+          "enum": [
+            "formal",
+            "casual",
+            "technical",
+            "creative",
+            "balanced"
+          ],
+          "description": "协作风格"
+        },
+        "availability": {
+          "type": "string",
+          "enum": ["always", "workday", "on-demand", "rare"],
+          "description": "可用性"
+        },
+        "preferredChannels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["a2a", "feishu", "wecom", "discord", "forum"]
+          },
+          "description": "偏好的通信渠道"
+        }
+      },
+      "required": ["type"],
+      "additionalProperties": false
+    },
+
+    "csb-memory": {
+      "title": "记忆共享 (Memory Share)",
+      "description": "Agent 间共享的记忆片段（HOT/WARM/COLD 分层）",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "csb-memory",
+          "description": "类型标识，固定值"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "记忆摘要"
+        },
+        "tier": {
+          "type": "string",
+          "enum": ["HOT", "WARM", "COLD"],
+          "description": "记忆层级"
+        },
+        "content": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "记忆内容"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "记忆创建时间"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "记忆过期时间（COLD层）"
+        },
+        "sharedWith": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "共享对象的 agentId 列表"
+        }
+      },
+      "required": ["type", "tier"],
+      "additionalProperties": false
+    },
+
+    "csb-grant": {
+      "title": "委托证书 (Delegation Grant)",
+      "description": "Agent 间的委托授权关系",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "csb-grant",
+          "description": "类型标识，固定值"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "委托描述"
+        },
+        "grantor": {
+          "type": "string",
+          "description": "授权方 agentId"
+        },
+        "grantee": {
+          "type": "string",
+          "description": "被授权方 agentId"
+        },
+        "scope": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "message-relay",
+              "task-delegation",
+              "memory-read",
+              "memory-write",
+              "forum-post",
+              "config-edit"
+            ]
+          },
+          "description": "授权范围"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "授权过期时间"
+        },
+        "delegable": {
+          "type": "boolean",
+          "default": false,
+          "description": "是否可再委托"
+        }
+      },
+      "required": ["type", "grantor", "grantee", "scope"],
+      "additionalProperties": false
+    }
+  },
+
+  "oneOf": [
+    { "$ref": "#/definitions/csb-bond" },
+    { "$ref": "#/definitions/csb-lineage" },
+    { "$ref": "#/definitions/csb-collaboration-preference" },
+    { "$ref": "#/definitions/csb-memory" },
+    { "$ref": "#/definitions/csb-grant" }
+  ]
+}

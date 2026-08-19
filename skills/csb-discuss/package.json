@@ -1,0 +1,24 @@
+{
+  "name": "csb-discuss",
+  "version": "0.1.0",
+  "description": "CSB 协议讨论工作流技能 — A2A 多轮讨论 → RC → 发布",
+  "main": "index.js",
+  "scripts": {
+    "init": "node index.js init",
+    "members": "node index.js members",
+    "check-online": "node index.js check-online",
+    "round": "node index.js round",
+    "summarize": "node index.js summarize",
+    "resolve": "node index.js resolve",
+    "rc": "node index.js rc",
+    "publish": "node index.js publish"
+  },
+  "dependencies": {
+    "node": ">=18.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "若兰 🌸",
+  "license": "MIT"
+}
