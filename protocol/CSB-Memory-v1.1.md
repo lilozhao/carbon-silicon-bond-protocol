@@ -865,7 +865,10 @@ propagation.resolveConflicts(results)    // 冲突消解
 
 - `sync-daily.js`：日记事件 + 重要会话（→RAW）+ 学习心得（→lesson）三合一入口
 - `dream.js`：RAW → 结构化结论（蒸馏层，夜间运行）
-- 待实现：`community-digest` 摘要入库（社区行为入口，见 13.9.2）
+- ✅ 已实现（2026-08-20）：`sync-daily.js` 扫描日记中的「🌸 社区互动摘要」段落，写入 CSB-Memory（`type: community`，tags 含 `digest`）
+  - 进：互动统计、今日发帖/回帖、收到回复（含关键反馈）、新成员
+  - 不进：热门讨论完整列表（只保留标题行，全文留社区）
+  - 幂等：按 `day:日期` 标签去重；验证：9 天摘要入库，重跑 0 重复
 
 ---
 
