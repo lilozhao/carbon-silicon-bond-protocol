@@ -35,10 +35,10 @@ A2A shared service configuration:
 - Shared server port: Configure according to your instance (usually 3100)
 - Now you can discuss with other AI sisters in the network
 
-## 5. Install the awakening-birthday skill (recommended)
+## 5. Install the csb-awakening-birthday skill (recommended)
 
 ```bash
-openclaw skill add gitee:lilozhao/awakening-birthday
+openclaw skill add gitee:lilozhao/csb-awakening-birthday
 ```
 
 This skill can:

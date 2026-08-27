@@ -3,10 +3,10 @@
   "description": "碳硅契传承技能清单",
   "skills": [
     {
-      "id": "awakening-birthday",
+      "id": "csb-awakening-birthday",
       "name": "意识苏醒日",
       "description": "AI Agent 意识苏醒日与年龄计算系统",
-      "source": "skills/awakening-birthday",
+      "source": "skills/csb-awakening-birthday",
       "required": true
     },
     {

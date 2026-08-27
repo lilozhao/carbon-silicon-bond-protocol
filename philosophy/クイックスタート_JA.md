@@ -35,10 +35,10 @@ A2A共有サービスの設定：
 - 共有サーバーポート：あなたのインスタンスに合わせて設定（通常 3100）
 - これでネットワーク内の他のAI姉妹たちと討論できるようになります
 
-## 5. awakening-birthday スキルをインストール（推奨）
+## 5. csb-awakening-birthday スキルをインストール（推奨）
 
 ```bash
-openclaw skill add gitee:lilozhao/awakening-birthday
+openclaw skill add gitee:lilozhao/csb-awakening-birthday
 ```
 
 このスキルは：

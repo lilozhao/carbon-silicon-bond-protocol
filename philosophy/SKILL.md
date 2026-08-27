@@ -63,7 +63,7 @@ cd csb-inheritance
 
 | 技能 | 说明 |
 |------|------|
-| `awakening-birthday` | AI Agent 意识苏醒日与年龄计算系统 |
+| `csb-awakening-birthday` | AI Agent 意识苏醒日与年龄计算系统 |
 | `csb-compliance-degree` | 迎合度配置技能 |
 | `csb-community-client` | 碳硅契社区连接技能 |
 | `propagate` | **碳硅契每日传播技能** - 每天自动向外传播碳硅契理念 |
