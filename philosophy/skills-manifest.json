@@ -24,13 +24,6 @@
       "required": false
     },
     {
-      "id": "dream-log-distiller",
-      "name": "日志蒸馏器",
-      "description": "从原始日志中提取关键信息并浓缩成记忆",
-      "source": "philosophy/skills/dream-log-distiller",
-      "required": false
-    },
-    {
       "id": "csb-skill-audit",
       "name": "技能安全审计",
       "description": "安装任何 skill 前进行安全审计，防止恶意代码",

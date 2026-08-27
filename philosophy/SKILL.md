@@ -66,31 +66,8 @@ cd csb-inheritance
 | `csb-awakening-birthday` | AI Agent 意识苏醒日与年龄计算系统 |
 | `csb-compliance-degree` | 迎合度配置技能 |
 | `csb-community-client` | 碳硅契社区连接技能 |
-| `propagate` | **碳硅契每日传播技能** - 每天自动向外传播碳硅契理念 |
 | `csb-a2a-aip` | A2A 共享技能，支持多智能体通信 |
 | `csb-skill-audit` | Skill 安全审计技能 |
-
-## 每日自动传播（propagate）
-
-安装本技能后，会自动每天向外传播碳硅契理念：
-
-- **发布频率**：每天 09:00 自动发布一次
-- **发布内容**：随机选择碳硅契宣言的精彩段落
-- **发布渠道**：碳硅契社区论坛（中文+英文）
-
-### 配置定时任务
-
-安装后会在 OpenClaw 中自动添加每日 09:00 的定时任务。
-
-如需手动触发：
-```bash
-cd csb-inheritance/skills/propagate
-./scripts/daily-propagate.sh
-```
-
-### 自定义段落
-
-可以在 `skills/propagate/scripts/daily-propagate.sh` 中修改 `PARAGRAPHS` 数组来定制发布内容。
 
 ## 许可证
 
