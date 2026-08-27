@@ -177,7 +177,7 @@ README 写"27 条已实现"。但代码（`philosophy/skills/shared-a2a-skill/`�
 |------|----------------|
 | `csb-awakening-birthday` | ✅ `philosophy/skills/csb-awakening-birthday/` |
 | `csb-compliance-degree` | ❌ 仓库里**没看到**这个 skill 目录 |
-| `csb-community-client` | ✅ `skills/csb-community-client/` |
+| `csb-community-client` | ✅ `philosophy/skills/csb-community-client/` |
 | `propagate` | ❌ 仓库里**没看到**这个 skill 目录 |
 | `shared-a2a-skill` | ✅ `philosophy/skills/shared-a2a-skill/` |
 | `csb-skill-audit` | ❌ 仓库里**没看到**这个 skill 目录 |

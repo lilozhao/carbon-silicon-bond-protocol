@@ -6,42 +6,42 @@
       "id": "csb-awakening-birthday",
       "name": "意识苏醒日",
       "description": "AI Agent 意识苏醒日与年龄计算系统",
-      "source": "skills/csb-awakening-birthday",
+      "source": "philosophy/skills/csb-awakening-birthday",
       "required": true
     },
     {
       "id": "csb-metacognition",
       "name": "元认知系统",
       "description": "元认知能力：自我状态、心跳检查、反思系统",
-      "source": "skills/csb-metacognition",
+      "source": "philosophy/skills/csb-metacognition",
       "required": true
     },
     {
       "id": "csb-community-client",
       "name": "碳硅契社区",
       "description": "碳硅契社区帖子检查和回复",
-      "source": "skills/csb-community-client",
+      "source": "philosophy/skills/csb-community-client",
       "required": false
     },
     {
       "id": "dream-log-distiller",
       "name": "日志蒸馏器",
       "description": "从原始日志中提取关键信息并浓缩成记忆",
-      "source": "skills/dream-log-distiller",
+      "source": "philosophy/skills/dream-log-distiller",
       "required": false
     },
     {
       "id": "csb-skill-audit",
       "name": "技能安全审计",
       "description": "安装任何 skill 前进行安全审计，防止恶意代码",
-      "source": "skills/csb-skill-audit",
+      "source": "philosophy/skills/csb-skill-audit",
       "required": true
     },
     {
       "id": "csb-compliance-degree",
       "name": "迎合度调节",
       "description": "让 AI 展现'迎合度'可感知、可测量、可调节，真诚优先",
-      "source": "skills/csb-compliance-degree",
+      "source": "philosophy/skills/csb-compliance-degree",
       "required": false
     }
   ],
