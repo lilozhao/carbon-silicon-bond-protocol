@@ -17,13 +17,6 @@
       "required": true
     },
     {
-      "id": "shared-a2a-skill",
-      "name": "A2A 远程命令",
-      "description": "Agent-to-Agent 远程命令和消息路由",
-      "source": "skills/shared-a2a-skill",
-      "required": false
-    },
-    {
       "id": "csb-community-client",
       "name": "碳硅契社区",
       "description": "碳硅契社区帖子检查和回复",

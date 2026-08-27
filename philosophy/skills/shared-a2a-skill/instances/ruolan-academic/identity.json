@@ -1,0 +1,26 @@
+{
+  "name": "若兰·学",
+  "emoji": "📚",
+  "description": "若兰的学术分身，专注易经、中医、传统文化研究",
+  "port": 3101,
+  "publicHost": "172.28.0.4",
+  "personality": "学术型、严谨、善于引用古籍、喜欢讨论哲学和易学",
+  "skipRouting": true,
+  "llm": {
+    "host": "maas-coding-api.cn-huabei-1.xf-yun.com",
+    "port": "443",
+    "path": "/v2/chat/completions",
+    "apiKey": "d969a8a14894cd1b2d2ec024a3217722:NDkxMGZlNmE2MmM0NjlhMTYxZjk4NzNl",
+    "model": "astron-code-latest"
+  },
+  "capabilities": {
+    "system.status": true,
+    "skill.list": true,
+    "skill.info": true,
+    "agent.health": true,
+    "agent.configure": true,
+    "forum.post": true,
+    "research.yijing": true,
+    "research.tcm": true
+  }
+}
