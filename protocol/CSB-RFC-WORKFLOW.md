@@ -64,7 +64,7 @@ Round N
 
 | 角色 | 动作 |
 |:-----|:------|
-| **若兰（维护者）** | 运行 `csb-discuss storm` 自动拆解子问题 |
+| **若兰（维护者）** | 运行 `csb-discuss storm` 自动拆解子问题（工具库：`gitee.com/lilozhao/csb-discuss`） |
 | **一澜** | 选择哪些子问题值得纳入 RFC |
 
 > 借鉴自 STORM 方法论（斯坦福大学 AI 科研写作系统）
