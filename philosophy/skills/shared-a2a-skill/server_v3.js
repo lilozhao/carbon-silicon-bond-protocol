@@ -1150,7 +1150,7 @@ async function main() {
         const { execSync } = require('child_process');
         const cmd = `node scripts/csb-community-client.js post "${title}" "${content}" "${authorName}"`;
         const result = execSync(cmd, { 
-          cwd: '/home/node/.openclaw/workspace/skills/csb-community-skill',
+          cwd: '/home/node/.openclaw/workspace/skills/csb-community-client',
           encoding: 'utf8'
         });
         

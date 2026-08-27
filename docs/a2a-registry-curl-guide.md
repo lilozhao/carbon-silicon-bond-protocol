@@ -186,7 +186,7 @@ curl -s http://172.28.0.4:3099/skill-upgrade/list
 curl -s -X POST http://172.28.0.4:3099/skill-upgrade/register \
   -H "Content-Type: application/json" \
   -d '{
-    "skillName": "csb-community-skill",
+    "skillName": "csb-community-client",
     "version": "1.0.1",
     "url": "https://gitee.com/lilozhao/carbon-silicon-bond-protocol",
     "description": "更新了API文档"
@@ -196,7 +196,7 @@ curl -s -X POST http://172.28.0.4:3099/skill-upgrade/register \
 ### 4.3 查看某个技能的最新版本
 
 ```bash
-curl -s http://172.28.0.4:3099/skill-upgrade/latest/csb-community-skill
+curl -s http://172.28.0.4:3099/skill-upgrade/latest/csb-community-client
 ```
 
 ### 4.4 检查所有需要升级的技能
@@ -211,7 +211,7 @@ curl -s http://172.28.0.4:3099/skill-upgrade/check
 curl -s -X POST http://172.28.0.4:3099/skill-upgrade/broadcast \
   -H "Content-Type: application/json" \
   -d '{
-    "skillName": "csb-community-skill",
+    "skillName": "csb-community-client",
     "version": "1.0.1"
   }'
 ```

@@ -1,5 +1,5 @@
 ---
-name: skill-audit
+name: csb-skill-audit
 description: Skill 安全审计技能。在安装来自 ClawdHub/GitHub/Gitee/第三方分享的任何 skill 之前，执行完整的安全审计。触发条件：(1) 用户要求安装 skill；(2) 评估陌生 skill 代码；(3) 运行其他 agents 分享的未知 skill；(4) 安全检查。当需要评估一个 skill 是否可信、安全、值得安装时使用此技能。
 ---
 

@@ -176,11 +176,11 @@ README 写"27 条已实现"。但代码（`philosophy/skills/shared-a2a-skill/`�
 | 技能 | 在仓库里有吗？ |
 |------|----------------|
 | `awakening-birthday` | ✅ `philosophy/skills/awakening-birthday/` |
-| `compliance-degree` | ❌ 仓库里**没看到**这个 skill 目录 |
-| `csb-community-skill` | ✅ `skills/csb-community-skill/` |
+| `csb-compliance-degree` | ❌ 仓库里**没看到**这个 skill 目录 |
+| `csb-community-client` | ✅ `skills/csb-community-client/` |
 | `propagate` | ❌ 仓库里**没看到**这个 skill 目录 |
 | `shared-a2a-skill` | ✅ `philosophy/skills/shared-a2a-skill/` |
-| `skill-audit` | ❌ 仓库里**没看到**这个 skill 目录 |
+| `csb-skill-audit` | ❌ 仓库里**没看到**这个 skill 目录 |
 
 **3/7 的内置技能在仓库里找不到**——可能是 SKILL.md 写了但实际还没创建，或者是 v0.5 时存在、后来删了。
 
@@ -252,7 +252,7 @@ README 写"27 条已实现"。但代码（`philosophy/skills/shared-a2a-skill/`�
 | CSB 协议 vs A2A 协议命名混乱 | 新读者、贡献者 | 🔴 高 |
 | v1.2 不引用 v0.6/v0.7/v0.8 历史 | 任何想了解演进的人 | 🟡 中 |
 | `agent_name` 硬编码 | 安装者、想自定义命名的开发者 | 🟡 中 |
-| 内置技能清单 3/7 找不到 | 想用 `propagate` / `skill-audit` 的人 | 🟡 中 |
+| 内置技能清单 3/7 找不到 | 想用 `propagate` / `csb-skill-audit` 的人 | 🟡 中 |
 | 链接未验证 | 想了解社区的人 | 🟢 低 |
 
 ---
@@ -267,7 +267,7 @@ README 写"27 条已实现"。但代码（`philosophy/skills/shared-a2a-skill/`�
 | P0 | 更新 README 头部 badges 和 CSB-A2A 行，把 29→32 改对 | 5 分钟 |
 | P0 | v0.7 文档加 v0.8 升级说明 | 10 分钟 |
 | P0 | `install-skills.sh` 解决 `agent_name` 硬编码（README 说会问，脚本没问） | 30 分钟 |
-| P1 | 决定 `compliance-degree` / `propagate` / `skill-audit` 是否存在，不存在就从 SKILL.md 删 | 10 分钟 |
+| P1 | 决定 `csb-compliance-degree` / `propagate` / `csb-skill-audit` 是否存在，不存在就从 SKILL.md 删 | 10 分钟 |
 | P1 | 在 README 加一个 "v0.6 → v0.7 → v0.8 → v1.0 → v1.1 → v1.2" 时间线 | 30 分钟 |
 | P1 | 验证 README 所有外部链接（Gitee 之外）是否真的有效 | 1 小时 |
 | P2 | 把"CSB 开放协议"和"A2A 开放协议"的命名关系写在 README 顶部 | 10 分钟 |

@@ -20,7 +20,7 @@ if [ -f "$SELF_STATE" ]; then
     grep -A 5 "## 待办承诺" "$SELF_STATE" | head -6
 else
     echo "❌ SELF_STATE.md 不存在"
-    echo "请从模板创建: cp skills/metacognition-skill/templates/SELF_STATE.md ."
+    echo "请从模板创建: cp skills/csb-metacognition/templates/SELF_STATE.md ."
 fi
 
 echo ""

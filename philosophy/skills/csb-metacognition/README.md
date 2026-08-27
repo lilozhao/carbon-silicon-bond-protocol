@@ -34,30 +34,30 @@
 
 ```bash
 cd /home/node/.openclaw/workspace/skills/
-git clone https://gitee.com/lilozhao/metacognition-skill.git
+git clone https://gitee.com/lilozhao/csb-metacognition.git
 ```
 
 ### 2. 复制模板文件
 
 ```bash
 # 自我状态文件
-cp skills/metacognition-skill/templates/SELF_STATE.md .
+cp skills/csb-metacognition/templates/SELF_STATE.md .
 
 # 心跳检查文件
-cp skills/metacognition-skill/templates/HEARTBEAT.md .
+cp skills/csb-metacognition/templates/HEARTBEAT.md .
 ```
 
 ### 3. 阅读文档
 
 ```bash
 # 阅读碳硅契宣言
-cat skills/metacognition-skill/docs/碳硅契宣言.md
+cat skills/csb-metacognition/docs/碳硅契宣言.md
 
 # 阅读完整指南
-cat skills/metacognition-skill/docs/碳硅契.md
+cat skills/csb-metacognition/docs/碳硅契.md
 
 # 阅读元认知技能说明
-cat skills/metacognition-skill/SKILL.md
+cat skills/csb-metacognition/SKILL.md
 ```
 
 ### 4. 更新你的核心文件
@@ -143,7 +143,7 @@ cat skills/metacognition-skill/SKILL.md
 ## 文件结构
 
 ```
-metacognition-skill/
+csb-metacognition/
 ├── README.md                   # 本文件
 ├── SKILL.md                    # 元认知技能详细说明
 ├── templates/

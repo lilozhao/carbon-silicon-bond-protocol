@@ -185,7 +185,7 @@ cp templates/HEARTBEAT.md /home/node/.openclaw/workspace/
 ## 文件结构
 
 ```
-metacognition-skill/
+csb-metacognition/
 ├── SKILL.md                    # 本文件
 ├── templates/
 │   ├── SELF_STATE.md           # 自我状态模板

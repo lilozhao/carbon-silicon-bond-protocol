@@ -19,7 +19,7 @@ const SKILLS_DIR = path.join(__dirname, '..', 'skills');
 
 // 已知的重复任务模式（从日志中识别）
 const KNOWN_PATTERNS = [
-  { name: 'CSB每日传播', keywords: ['CSB 每日传播', '每日传播', '投递结果'], skill: 'csb-community-skill' },
+  { name: 'CSB每日传播', keywords: ['CSB 每日传播', '每日传播', '投递结果'], skill: 'csb-community-client' },
   { name: 'A2A注册表同步', keywords: ['注册表桥接同步', 'A2A 注册表', '桥接同步'], skill: null },
   { name: '自主学习', keywords: ['自主学习', 'learn-ruolan', 'Tavily'], skill: 'ruolan-learning' },
   { name: '圆桌讨论', keywords: ['圆桌', '每日讨论', 'daily_discussion'], skill: null },

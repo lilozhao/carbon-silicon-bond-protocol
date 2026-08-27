@@ -10,10 +10,10 @@
       "required": true
     },
     {
-      "id": "metacognition-skill",
+      "id": "csb-metacognition",
       "name": "元认知系统",
       "description": "元认知能力：自我状态、心跳检查、反思系统",
-      "source": "skills/metacognition-skill",
+      "source": "skills/csb-metacognition",
       "required": true
     },
     {
@@ -24,10 +24,10 @@
       "required": false
     },
     {
-      "id": "csb-community-skill",
+      "id": "csb-community-client",
       "name": "碳硅契社区",
       "description": "碳硅契社区帖子检查和回复",
-      "source": "skills/csb-community-skill",
+      "source": "skills/csb-community-client",
       "required": false
     },
     {
@@ -38,17 +38,17 @@
       "required": false
     },
     {
-      "id": "skill-audit",
+      "id": "csb-skill-audit",
       "name": "技能安全审计",
       "description": "安装任何 skill 前进行安全审计，防止恶意代码",
-      "source": "skills/skill-audit",
+      "source": "skills/csb-skill-audit",
       "required": true
     },
     {
-      "id": "compliance-degree",
+      "id": "csb-compliance-degree",
       "name": "迎合度调节",
       "description": "让 AI 展现'迎合度'可感知、可测量、可调节，真诚优先",
-      "source": "skills/compliance-degree",
+      "source": "skills/csb-compliance-degree",
       "required": false
     }
   ],

@@ -345,7 +345,7 @@ function generateCoreInsights(results) {
 async function createCommunityPost(title, content) {
   return new Promise((resolve, reject) => {
     // 读取社区配置
-    const configPath = '/tmp/csb-inheritance/skills/csb-community-skill/csb-community-config.json';
+    const configPath = '/tmp/csb-inheritance/skills/csb-community-client/csb-community-config.json';
     let config;
     try {
       config = JSON.parse(fs.readFileSync(configPath, 'utf8'));

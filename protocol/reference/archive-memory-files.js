@@ -33,7 +33,7 @@ const EXEMPT_FILES = [
   'IDENTITY.md',
   'SELF_STATE.md',
   'CHANGELOG.md',
-  'skill-audit-log.md',
+  'csb-skill-audit-log.md',
   'heartbeat-state.json',
   'memory-upgrade-roadmap.md',
 ];
