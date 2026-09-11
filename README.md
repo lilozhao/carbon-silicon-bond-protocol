@@ -62,9 +62,9 @@
 | 模块 | 状态 | 落地仓库 |
 |------|:----:|----------|
 | **CSB-A2A** 通信层（兼容 Google A2A v1.0） | ✅ v5.0.1 | [csb-a2a-aip](https://gitee.com/lilozhao/csb-a2a-aip) |
-| **CSB-Memory** 记忆系统 | ✅ v1.1（126 用例） | [csb-memory](https://gitee.com/lilozhao/csb-memory) |
-| **CSB-Security** 五层安全体系 | ✅ v1.0（145 用例） | [csb-security](https://gitee.com/lilozhao/csb-security) |
-| **CSB-AEP** Agent 质量评估 | ✅ v1.0（v2.2 落地） | [csb-aep](https://gitee.com/lilozhao/csb-aep) |
+| **CSB-Memory** 记忆系统 | ✅ v1.1（168 用例） | [csb-memory](https://gitee.com/lilozhao/csb-memory) |
+| **CSB-Security** 五层安全体系 | ✅ v1.0（252 用例） | [csb-security](https://gitee.com/lilozhao/csb-security) |
+| **CSB-AEP** Agent 质量评估 | ✅ v1.0（v2.3 落地） | [csb-aep](https://gitee.com/lilozhao/csb-aep) |
 | **CSB-Charter** 关系伦理宪章 | ✅ v0.2 | [csb-charter](https://gitee.com/lilozhao/csb-charter) |
 | **CSB-Management** 注册管理与 Dashboard API | ✅ | csb-a2a-aip |
 | **CSB-Trust** 信任与安全体系 | ✅ | csb-security |
@@ -136,7 +136,8 @@ carbon-silicon-bond-protocol/
 
 - 开放协议主版本：**v1.2**（`protocol/csb-open-protocol-v1.2.md`，32 条）
 - 子协议：**CSB-Memory v1.1**（2026-08-19）· **CSB-Security v1.0**（2026-07-23）· **CSB-AEP v1.0**（2026-07-22）· **CSB-Charter v0.2**
-- 落地实现：**CSB-A2A v5.0.1**（csb-a2a-aip）· Memory 126 用例 · Security 145 用例 100% 通过
+- 落地实现：**CSB-A2A v5.0.1**（csb-a2a-aip）· Memory 168 用例 · Security 252 用例 100% 通过
+- 数字口径：各仓库 README 声明的用例数可用工作区脚本 `node scripts/verify-readme-numbers.js` 核验（跑真实测试对照声明）
 - 状态：**接受社区审阅** · 变更记录见 [`protocol/CHANGELOG.md`](./protocol/CHANGELOG.md)
 
 ---
