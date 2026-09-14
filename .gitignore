@@ -5,3 +5,9 @@ node_modules/
 Thumbs.db
 *.bak
 .git.broken/
+
+# 共享仓卫生（docs/shared-repo-hygiene.md · 2026-09-14）
+# 运行时数据 / 实例本地身份：永不入库
+protocol/logs/
+legacy/lanapi/data/
+philosophy/skills/csb-community-client/scripts/identity.json
