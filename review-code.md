@@ -16,7 +16,7 @@
 - 信封模式 (`envelope.js`) 的双格式兼容设计周到
 
 **主要问题：**
-1. **安全：硬编码 IP / 私钥残留 / 路径注入** — 多个文件把内网 IP (`172.28.x.x`, `47.121.28.125`) 写死，会泄漏到任何 fork
+1. **安全：硬编码 IP / 私钥残留 / 路径注入** — 多个文件把内网 IP (`192.0.2.x`, `203.0.113.10`) 写死，会泄漏到任何 fork
 2. **安全：HTTP-only 通信** — A2A 协议全程明文传输，没有 TLS
 3. **协议 bug：DELEGATE_ACK 的 ETA 字段和实际超时对不上** — `delegator.js` ACK 里写 `eta: 5000`，但 `setTimeout` 用的是调用方传入的 `timeout` (30000)
 4. **代码冗余：client.js 和 client-v2.js 大量重复** — sendMessage 实现几乎一致，A2A-008 离线功能在两个文件里都写
@@ -33,7 +33,7 @@
 
 | 严重度 | 位置 | 问题 |
 |:---:|:---|:---|
-| 🔴 高 | L234 | 硬编码内网 IP `47.121.28.125:3099` 作为注册表地址，公开仓库里会泄漏内网拓扑 |
+| 🔴 高 | L234 | 硬编码内网 IP `203.0.113.10:3099` 作为注册表地址，公开仓库里会泄漏内网拓扑 |
 | 🟡 中 | L218 | `agentUrl.match(/http[s]?:\/\/([^:]+):(\d+)/)` 用正则解析 URL，不健壮。建议用 `new URL(agentUrl)` |
 | 🟡 中 | L200-207 | 静默调用 `notify_feishu.js` 但没限速，飞书 API 配额会被打爆 |
 
@@ -130,7 +130,7 @@ delay = delay / 2 + Math.random() * (delay / 2);
 |:---:|:---|:---|
 | 🔴 高 | L170 | **命令注入**：`messageText = \`帮我发个帖子到社区，标题是"${title}"，内容是"${content}"\`` —— `title` 和 `content` 直接拼进字符串 |
 | 🔴 高 | L157 | `metadata.original_sender = originalSender` —— `originalSender` 来自用户输入，**没做任何校验**就塞进 metadata，会被目标 Agent 信任 |
-| 🟡 中 | L10 | `process.env.A2A_REGISTRY_HOST \|\| '47.121.28.125'` 又是硬编码 IP |
+| 🟡 中 | L10 | `process.env.A2A_REGISTRY_HOST \|\| '203.0.113.10'` 又是硬编码 IP |
 
 #### 注入攻击路径
 
@@ -355,7 +355,7 @@ const timer = setTimeout(() => { reject(...) }, timeout);  // timeout=30000
 
 | 严重度 | 位置 | 问题 |
 |:---:|:---|:---|
-| 🟡 中 | L21-29 | 硬编码所有 Agent 的内网 URL + IP，**包括 `118.126.65.27`、`106.12.36.177` 这种公网 IP** |
+| 🟡 中 | L21-29 | 硬编码所有 Agent 的内网 URL + IP，**包括 `203.0.113.11`、`203.0.113.12` 这种公网 IP** |
 | 🟡 中 | L35 | `stateFile: '/home/node/.openclaw/workspace/...'` 硬编码 Linux 路径 |
 | 🟡 中 | L246-290 | 飞书 webhook 通过 `process.env.FEISHU_WEBHOOK` 注入，但 `enabled: false` 默认值——**配置项是 broken state**（默认 false，但调用方可能以为有 webhook 就有通知） |
 
@@ -447,10 +447,10 @@ const timer = setTimeout(() => { reject(...) }, timeout);  // timeout=30000
 
 ### 5. 硬编码的私人/内网信息
 
-- 47.121.28.125 (注册表)
-- 172.28.0.2~.7 (Agent 内网)
-- 118.126.65.27、106.12.36.177 (公网 Agent)
-- 172.28.0.4 (若兰)
+- 203.0.113.10 (注册表)
+- 192.0.2.2~.7 (Agent 内网)
+- 203.0.113.11、203.0.113.12 (公网 Agent)
+- 192.0.2.4 (若兰)
 - /home/node/.openclaw/workspace (Linux 路径)
 
 **全部应该走环境变量或 config 文件**，这样仓库才能公开。

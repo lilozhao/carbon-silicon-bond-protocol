@@ -86,7 +86,7 @@ const CN_FORUM = 'https://csbc.lilozkzy.top';
 async function loadAgents() {
   try {
     // 尝试从注册表获取（同网络环境下生效）
-    const resp = await fetch('http://172.28.0.4:3099/agents').catch(() => null);
+    const resp = await fetch('http://192.0.2.4:3099/agents').catch(() => null);
     if (resp && resp.ok) {
       const data = await resp.json();
       const agents = data.agents || data.data || [];
@@ -178,7 +178,7 @@ async function loadTimeline() {
     const entries = [];
     // 从审计日志获取（如果可达）
     try {
-      const resp = await fetch('http://172.28.0.4:3099/audit?limit=20').catch(() => null);
+      const resp = await fetch('http://192.0.2.4:3099/audit?limit=20').catch(() => null);
       if (resp && resp.ok) {
         const data = await resp.json();
         entries.push(...(data.entries || []));

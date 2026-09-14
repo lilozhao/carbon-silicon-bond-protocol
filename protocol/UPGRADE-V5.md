@@ -2,7 +2,7 @@
 
 > 从 v4 升级到 v5（分层提示词 + LLM Router + 多适配器）
 > 
-> 下载地址：本地 Gogs `http://172.28.0.124:3000/lilozhao/csb-a2a-aip.git`
+> 下载地址：本地 Gogs `http://192.0.2.124:3000/lilozhao/csb-a2a-aip.git`
 
 ---
 
@@ -22,11 +22,11 @@ cp -r . ../csb-a2a-aip-backup-$(date +%Y%m%d)
 
 ```bash
 # 方式一：git pull（如果你是从 Gogs clone 的）
-git pull http://172.28.0.124:3000/lilozhao/csb-a2a-aip.git master
+git pull http://192.0.2.124:3000/lilozhao/csb-a2a-aip.git master
 
 # 方式二：直接下载覆盖
 cd /home/node/.openclaw/workspace
-git clone http://172.28.0.124:3000/lilozhao/csb-a2a-aip.git csb-a2a-aip-new
+git clone http://192.0.2.124:3000/lilozhao/csb-a2a-aip.git csb-a2a-aip-new
 cp -r csb-a2a-aip-new/* csb-a2a-aip/
 cp -r csb-a2a-aip-new/config csb-a2a-aip/
 rm -rf csb-a2a-aip-new
@@ -50,7 +50,7 @@ npm install
 ```json
 {
   "registry": {
-    "local": "http://172.28.0.4:3099",
+    "local": "http://192.0.2.4:3099",
     "public": "http://csbc.lilozkzy.top:3099"
   },
   "self": {
@@ -59,7 +59,7 @@ npm install
     "port": 3100
   },
   "agents": {
-    "ruolan": { "name": "若兰 🌸", "host": "172.28.0.4", "port": 3100 }
+    "ruolan": { "name": "若兰 🌸", "host": "192.0.2.4", "port": 3100 }
   }
 }
 ```
@@ -165,7 +165,7 @@ kill -9 <PID>
 不需要。启动后会自动注册和心跳。但建议重启后手动确认：
 
 ```bash
-curl -s http://172.28.0.4:3099/agents/你的名字
+curl -s http://192.0.2.4:3099/agents/你的名字
 ```
 
 ---

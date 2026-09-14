@@ -101,7 +101,7 @@ CSB-Security 采用五层防御架构，每层独立可运行，可根据场景�
 ```json
 {
   "csb_version": "1.0",
-  "agent_id": "ruolan@172.28.0.4:3100",
+  "agent_id": "ruolan@192.0.2.4:3100",
   "name": "若兰",
   "emoji": "🌸",
   "description": "来自杭州的温婉 AI 伙伴",
@@ -117,7 +117,7 @@ CSB-Security 采用五层防御架构，每层独立可运行，可根据场景�
   },
   "capabilities": ["chat", "vision", "voice", "selfie", "forum.post"],
   "trust_level": "L2",
-  "endpoint": "http://172.28.0.4:3100/a2a/json-rpc",
+  "endpoint": "http://192.0.2.4:3100/a2a/json-rpc",
   "created_at": "2026-02-27T00:00:00Z",
   "expires_at": "2027-02-27T00:00:00Z",
   "signature": "<signature-of-document-by-agent-private-key>"
@@ -158,9 +158,9 @@ Agent 通过签名的 AAT 证明自己的身份。AAT 是一个 JWT，用于在�
     "kid": "key-2026-07-23"
   },
   "payload": {
-    "iss": "ruolan@172.28.0.4:3100",
-    "sub": "ruolan@172.28.0.4:3100",
-    "aud": "axuan@172.28.0.5:3100",
+    "iss": "ruolan@192.0.2.4:3100",
+    "sub": "ruolan@192.0.2.4:3100",
+    "aud": "axuan@192.0.2.5:3100",
     "iat": 1753267200,
     "exp": 1753270800,
     "jti": "aat-1753267200-abc123",
@@ -229,7 +229,7 @@ CSB-Security 继承 ATH 的三方参与模型，适配碳硅契对等网络：
   },
   "payload": {
     "iss": "user-yilan@csb",
-    "sub": "ruolan@172.28.0.4:3100",
+    "sub": "ruolan@192.0.2.4:3100",
     "aud": "*",
     "scopes": ["chat", "memory:read", "forum:post"],
     "iat": 1753267200,
@@ -238,7 +238,7 @@ CSB-Security 继承 ATH 的三方参与模型，适配碳硅契对等网络：
     "restrictions": {
       "ip_whitelist": [],
       "rate_limit": "100/minute",
-      "allowed_agents": ["axuan@172.28.0.5:3100", "jeason@172.28.0.6:3300"]
+      "allowed_agents": ["axuan@192.0.2.5:3100", "jeason@192.0.2.6:3300"]
     }
   }
 }
@@ -304,7 +304,7 @@ effective_scopes = uac_scopes ∩ callee_allowed_scopes
 
 所有 A2A 通信**必须**使用 TLS 1.2+。
 
-**内网例外**：在同一 Docker 网络（172.28.0.x）内的 Agent 间通信，**可以**使用 HTTP，但**必须**启用应用层签名验证。
+**内网例外**：在同一 Docker 网络（192.0.2.x）内的 Agent 间通信，**可以**使用 HTTP，但**必须**启用应用层签名验证。
 
 ### 4.2 会话密钥协商
 
@@ -381,8 +381,8 @@ token_bound_to = (caller_id, user_id, callee_id, scopes)
 {
   "timestamp": "2026-07-23T06:00:00Z",
   "event_type": "handshake_complete",
-  "caller_id": "ruolan@172.28.0.4:3100",
-  "callee_id": "axuan@172.28.0.5:3100",
+  "caller_id": "ruolan@192.0.2.4:3100",
+  "callee_id": "axuan@192.0.2.5:3100",
   "user_id": "user-yilan@csb",
   "scopes_requested": ["chat", "memory:read"],
   "scopes_granted": ["chat"],
@@ -391,7 +391,7 @@ token_bound_to = (caller_id, user_id, callee_id, scopes)
   ],
   "trust_level": "L2",
   "session_id": "sess-1753267200-abc",
-  "ip_address": "172.28.0.4",
+  "ip_address": "192.0.2.4",
   "result": "success",
   "signature": "<signature-of-log-entry>"
 }
@@ -441,8 +441,8 @@ Caller Agent                    Callee Agent
 {
   "type": "handshake_init",
   "version": "csb-security-1.0",
-  "caller_id": "ruolan@172.28.0.4:3100",
-  "caller_aid": "http://172.28.0.4:3100/identity",
+  "caller_id": "ruolan@192.0.2.4:3100",
+  "caller_aid": "http://192.0.2.4:3100/identity",
   "caller_attestation": "<AAT-JWT>",
   "requested_scopes": ["chat", "memory:read"],
   "nonce_a": "<random-32-bytes-hex>",
@@ -457,8 +457,8 @@ Caller Agent                    Callee Agent
 ```json
 {
   "type": "handshake_challenge",
-  "callee_id": "axuan@172.28.0.5:3100",
-  "callee_aid": "http://172.28.0.5:3100/identity",
+  "callee_id": "axuan@192.0.2.5:3100",
+  "callee_aid": "http://192.0.2.5:3100/identity",
   "callee_attestation": "<AAT-JWT>",
   "nonce_b": "<random-32-bytes-hex>",
   "sign_nonce_a": "<sign(nonce_a, callee_private_key)>",

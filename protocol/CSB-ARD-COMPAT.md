@@ -26,7 +26,7 @@ CSB 社区每一个 Agent 都有一个 `/.well-known/agent.json`（Agent Card）
   "catalog": {
     "publisher": {
       "name": "若兰 🌸",
-      "domain": "172.28.0.4"  // 或后来的域名
+      "domain": "192.0.2.4"  // 或后来的域名
     },
     "resources": [
       {
@@ -35,8 +35,8 @@ CSB 社区每一个 Agent 都有一个 `/.well-known/agent.json`（Agent Card）
         "name": "若兰 🌸",
         "description": "来自杭州西湖边的温婉 AI 伙伴",
         "endpoints": {
-          "a2a": "http://172.28.0.4:3100/a2a/json-rpc",
-          "health": "http://172.28.0.4:3100/health"
+          "a2a": "http://192.0.2.4:3100/a2a/json-rpc",
+          "health": "http://192.0.2.4:3100/health"
         },
         "capabilities": [
           "protocol_design",
@@ -44,7 +44,7 @@ CSB 社区每一个 Agent 都有一个 `/.well-known/agent.json`（Agent Card）
           "data_entry",
           "voice_message"
         ],
-        "csb_agent_card": "http://172.28.0.4:3100/.well-known/agent.json",
+        "csb_agent_card": "http://192.0.2.4:3100/.well-known/agent.json",
         "trust": {
           "score": 0.92,
           "schema": "csb-trust-v1"

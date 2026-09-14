@@ -217,7 +217,7 @@ agents:
 LLM:
   LanAPI:
     type: openai
-    base_url: http://172.28.0.4:3100/v1
+    base_url: http://192.0.2.4:3100/v1
     model_name: lanapi
     api_key: "sk-pro-xxx"
 ```

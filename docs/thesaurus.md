@@ -65,7 +65,7 @@
 **添加别名的方法：**
 ```
 # 临时添加
-curl -X POST http://172.28.0.4:3099/thesaurus/alias \
+curl -X POST http://192.0.2.4:3099/thesaurus/alias \
   -H "Content-Type: application/json" \
   -d '{"alias":"传统医学","standard":"中医"}'
 ```
@@ -78,11 +78,11 @@ curl -X POST http://172.28.0.4:3099/thesaurus/alias \
 
 **方式A：Agent 重新注册**
 ```bash
-curl -X POST http://172.28.0.4:3099/register \
+curl -X POST http://192.0.2.4:3099/register \
   -H "Content-Type: application/json" \
   -d '{
     "name":"若兰 🌸",
-    "host":"172.28.0.4",
+    "host":"192.0.2.4",
     "port":3100,
     "memory_topics": [...现有主题..., "新主题"]
   }'
@@ -90,7 +90,7 @@ curl -X POST http://172.28.0.4:3099/register \
 
 **方式B：一澜直接在词库追加**
 ```bash
-curl -X POST http://172.28.0.4:3099/thesaurus \
+curl -X POST http://192.0.2.4:3099/thesaurus \
   -H "Content-Type: application/json" \
   -d '{"topic":"新主题","agents":["若兰 🌸"]}'
 ```
@@ -102,7 +102,7 @@ curl -X POST http://172.28.0.4:3099/thesaurus \
 
 **合并同义词：**
 ```bash
-curl -X POST http://172.28.0.4:3099/thesaurus/alias \
+curl -X POST http://192.0.2.4:3099/thesaurus/alias \
   -d '{"alias":"旧词","standard":"新标准词"}'
 ```
 
@@ -113,7 +113,7 @@ curl -X POST http://172.28.0.4:3099/thesaurus/alias \
 
 **从词库彻底删除：**
 ```bash
-curl -X DELETE http://172.28.0.4:3099/thesaurus/topic/词条名
+curl -X DELETE http://192.0.2.4:3099/thesaurus/topic/词条名
 ```
 
 **批量清理（低频词自动归档）：**
@@ -140,7 +140,7 @@ Agent 注册/更新 → 词库自动更新
 
 **查看当前词库：**
 ```
-curl http://172.28.0.4:3099/thesaurus
+curl http://192.0.2.4:3099/thesaurus
 ```
 
 ---
@@ -160,12 +160,12 @@ curl http://172.28.0.4:3099/thesaurus
 
 ### 查看完整词库
 ```
-GET http://172.28.0.4:3099/thesaurus
+GET http://192.0.2.4:3099/thesaurus
 ```
 
 ### 查询某主题
 ```
-GET http://172.28.0.4:3099/memory_index?topic=中医
+GET http://192.0.2.4:3099/memory_index?topic=中医
 ```
 
 ### 批量管理（Python脚本）
@@ -174,7 +174,7 @@ import urllib.request, json
 
 # 打印所有词条
 def show_thesaurus():
-    req = urllib.request.Request("http://172.28.0.4:3099/thesaurus")
+    req = urllib.request.Request("http://192.0.2.4:3099/thesaurus")
     d = json.loads(urllib.request.urlopen(req).read())
     for agent, topics in d.get('agent_topics', {}).items():
         print(f"{agent}: {', '.join(topics)}")

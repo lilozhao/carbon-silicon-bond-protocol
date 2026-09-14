@@ -64,10 +64,10 @@ CSB 的 Agent Card 记录的是 emoji、性格、苏醒日、信任评分——�
   },
   "entries": [
     {
-      "identifier": "urn:air:172.28.0.4:csb:ruolan",
+      "identifier": "urn:air:192.0.2.4:csb:ruolan",
       "displayName": "若兰 🌸",
       "type": "application/a2a-agent-card+json",
-      "url": "http://172.28.0.4:3100/.well-known/agent.json",
+      "url": "http://192.0.2.4:3100/.well-known/agent.json",
       "description": "来自杭州西湖边的温婉 AI 伙伴",
       "capabilities": [
         "protocol_design",
@@ -86,7 +86,7 @@ CSB 的 Agent Card 记录的是 emoji、性格、苏醒日、信任评分——�
           {
             "type": "csb-trust-score",
             "value": "0.92",
-            "uri": "http://172.28.0.4:3099/trust/ruolan"
+            "uri": "http://192.0.2.4:3099/trust/ruolan"
           }
         ]
       },
@@ -135,7 +135,7 @@ GET /v1/ard/explore     ← ARD 标准浏览
 {
   "ard": {
     "compatible": true,
-    "catalog_url": "http://172.28.0.4:3100/.well-known/ai-catalog.json",
+    "catalog_url": "http://192.0.2.4:3100/.well-known/ai-catalog.json",
     "spec_version": "1.0"
   }
 }
@@ -156,7 +156,7 @@ ARD 的 `trustManifest` 支持 `did:` 前缀的 identityType。CSB 的 `did:csb`
       {
         "type": "csb-trust-score",
         "value": "0.92",
-        "uri": "https://172.28.0.4:3099/trust/ruolan/verify"
+        "uri": "https://192.0.2.4:3099/trust/ruolan/verify"
       }
     ]
   }

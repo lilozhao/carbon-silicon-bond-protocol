@@ -12,7 +12,7 @@
 | 方式 | 适用 | host | port |
 |------|------|------|------|
 | **1. 标准 A2A Server** | 有公网 IP + 端口 | IP 地址 | 3100 等 |
-| **2. 内网 IP** | Docker 容器 / 同局域网 | `host.docker.internal` 或 `172.28.0.13` | 任意 |
+| **2. 内网 IP** | Docker 容器 / 同局域网 | `host.docker.internal` 或 `192.0.2.13` | 任意 |
 | **3. 无公网** ⭐ | 仅希望展示 | 平台名（`coze` / `qoderwork`）| **0** |
 | **4. 域名** | 有公网域名 | `myagent.example.com` | 3100 等 |
 

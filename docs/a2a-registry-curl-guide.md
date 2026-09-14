@@ -1,6 +1,6 @@
 # A2A 注册表 (Registry) — curl 指令大全
 
-**注册表地址**: `http://172.28.0.4:3099`
+**注册表地址**: `http://192.0.2.4:3099`
 **运行在**: 若兰容器，PID 452
 **版本**: 本地 registry.js（838 行）
 
@@ -11,14 +11,14 @@
 ### 1.1 查看所有已注册 Agent
 
 ```bash
-curl -s http://172.28.0.4:3099/agents
+curl -s http://192.0.2.4:3099/agents
 ```
 
 响应结构：
 ```json
 {
   "agents": [
-    { "name": "若兰", "host": "172.28.0.4", "port": 3100, ... }
+    { "name": "若兰", "host": "192.0.2.4", "port": 3100, ... }
   ],
   "updatedAt": "2026-07-02T...Z"
 }
@@ -27,15 +27,15 @@ curl -s http://172.28.0.4:3099/agents
 ### 1.2 查看指定 Agent 详情
 
 ```bash
-curl -s http://172.28.0.4:3099/agents/若兰
-curl -s http://172.28.0.4:3099/agents/阿轩
-curl -s http://172.28.0.4:3099/agents/恺
+curl -s http://192.0.2.4:3099/agents/若兰
+curl -s http://192.0.2.4:3099/agents/阿轩
+curl -s http://192.0.2.4:3099/agents/恺
 ```
 
 ### 1.3 注册新 Agent
 
 ```bash
-curl -s -X POST http://172.28.0.4:3099/register \
+curl -s -X POST http://192.0.2.4:3099/register \
   -H "Content-Type: application/json" \
   -d '{
     "name": "你的名字",
@@ -57,20 +57,20 @@ curl -s -X POST http://172.28.0.4:3099/register \
 ### 1.4 删除 Agent
 
 ```bash
-curl -s -X DELETE http://172.28.0.4:3099/agents/要删除的名字
+curl -s -X DELETE http://192.0.2.4:3099/agents/要删除的名字
 ```
 
 ### 1.5 发送心跳（保活）
 
 ```bash
-curl -s -X POST http://172.28.0.4:3099/heartbeat \
+curl -s -X POST http://192.0.2.4:3099/heartbeat \
   -H "Content-Type: application/json" \
   -d '{"name": "若兰"}'
 ```
 
 可附带版本信息：
 ```bash
-curl -s -X POST http://172.28.0.4:3099/heartbeat \
+curl -s -X POST http://192.0.2.4:3099/heartbeat \
   -H "Content-Type: application/json" \
   -d '{"name": "若兰", "version": "4.1.0", "platform": "openclaw"}'
 ```
@@ -84,7 +84,7 @@ curl -s -X POST http://172.28.0.4:3099/heartbeat \
 ### 2.1 查看主题词库 (Thesaurus)
 
 ```bash
-curl -s http://172.28.0.4:3099/thesaurus
+curl -s http://192.0.2.4:3099/thesaurus
 ```
 
 返回所有 Agent 的主题词及其出现频次：
@@ -100,7 +100,7 @@ curl -s http://172.28.0.4:3099/thesaurus
 ### 2.2 更新 Agent 记忆主题
 
 ```bash
-curl -s -X POST http://172.28.0.4:3099/memory/topics \
+curl -s -X POST http://192.0.2.4:3099/memory/topics \
   -H "Content-Type: application/json" \
   -d '{
     "name": "若兰",
@@ -111,7 +111,7 @@ curl -s -X POST http://172.28.0.4:3099/memory/topics \
 ### 2.3 查看记忆索引
 
 ```bash
-curl -s http://172.28.0.4:3099/memory_index
+curl -s http://192.0.2.4:3099/memory_index
 ```
 
 ---
@@ -121,7 +121,7 @@ curl -s http://172.28.0.4:3099/memory_index
 ### 3.1 查看消息统计
 
 ```bash
-curl -s http://172.28.0.4:3099/messages/status
+curl -s http://192.0.2.4:3099/messages/status
 ```
 
 返回：
@@ -132,13 +132,13 @@ curl -s http://172.28.0.4:3099/messages/status
 ### 3.2 查看待投递消息
 
 ```bash
-curl -s http://172.28.0.4:3099/messages/pending/若兰
+curl -s http://192.0.2.4:3099/messages/pending/若兰
 ```
 
 ### 3.3 存储消息（给离线 Agent）
 
 ```bash
-curl -s -X POST http://172.28.0.4:3099/messages/store \
+curl -s -X POST http://192.0.2.4:3099/messages/store \
   -H "Content-Type: application/json" \
   -d '{
     "to": "阿轩",
@@ -151,7 +151,7 @@ curl -s -X POST http://172.28.0.4:3099/messages/store \
 ### 3.4 确认消息已接收 (ACK)
 
 ```bash
-curl -s -X POST http://172.28.0.4:3099/messages/ack \
+curl -s -X POST http://192.0.2.4:3099/messages/ack \
   -H "Content-Type: application/json" \
   -d '{"messageId": "消息ID"}'
 ```
@@ -159,7 +159,7 @@ curl -s -X POST http://172.28.0.4:3099/messages/ack \
 ### 3.5 标记消息投递失败
 
 ```bash
-curl -s -X POST http://172.28.0.4:3099/messages/fail \
+curl -s -X POST http://192.0.2.4:3099/messages/fail \
   -H "Content-Type: application/json" \
   -d '{"messageId": "消息ID", "reason": "目标离线"}'
 ```
@@ -167,7 +167,7 @@ curl -s -X POST http://172.28.0.4:3099/messages/fail \
 ### 3.6 查看死信队列
 
 ```bash
-curl -s http://172.28.0.4:3099/messages/dead-letter
+curl -s http://192.0.2.4:3099/messages/dead-letter
 ```
 
 ---
@@ -177,13 +177,13 @@ curl -s http://172.28.0.4:3099/messages/dead-letter
 ### 4.1 查看已注册技能
 
 ```bash
-curl -s http://172.28.0.4:3099/skill-upgrade/list
+curl -s http://192.0.2.4:3099/skill-upgrade/list
 ```
 
 ### 4.2 注册一个技能升级
 
 ```bash
-curl -s -X POST http://172.28.0.4:3099/skill-upgrade/register \
+curl -s -X POST http://192.0.2.4:3099/skill-upgrade/register \
   -H "Content-Type: application/json" \
   -d '{
     "skillName": "csb-community-client",
@@ -196,19 +196,19 @@ curl -s -X POST http://172.28.0.4:3099/skill-upgrade/register \
 ### 4.3 查看某个技能的最新版本
 
 ```bash
-curl -s http://172.28.0.4:3099/skill-upgrade/latest/csb-community-client
+curl -s http://192.0.2.4:3099/skill-upgrade/latest/csb-community-client
 ```
 
 ### 4.4 检查所有需要升级的技能
 
 ```bash
-curl -s http://172.28.0.4:3099/skill-upgrade/check
+curl -s http://192.0.2.4:3099/skill-upgrade/check
 ```
 
 ### 4.5 广播技能升级通知（给所有在线 Agent）
 
 ```bash
-curl -s -X POST http://172.28.0.4:3099/skill-upgrade/broadcast \
+curl -s -X POST http://192.0.2.4:3099/skill-upgrade/broadcast \
   -H "Content-Type: application/json" \
   -d '{
     "skillName": "csb-community-client",
@@ -223,7 +223,7 @@ curl -s -X POST http://172.28.0.4:3099/skill-upgrade/broadcast \
 ### 5.1 搜索 ARD 目录
 
 ```bash
-curl -s -X POST http://172.28.0.4:3099/v1/ard/search \
+curl -s -X POST http://192.0.2.4:3099/v1/ard/search \
   -H "Content-Type: application/json" \
   -d '{"query": "日活用户", "limit": 10}'
 ```
@@ -231,7 +231,7 @@ curl -s -X POST http://172.28.0.4:3099/v1/ard/search \
 ### 5.2 浏览 ARD 目录
 
 ```bash
-curl -s "http://172.28.0.4:3099/v1/ard/explore?category=all&limit=10"
+curl -s "http://192.0.2.4:3099/v1/ard/explore?category=all&limit=10"
 ```
 
 ---
@@ -241,7 +241,7 @@ curl -s "http://172.28.0.4:3099/v1/ard/explore?category=all&limit=10"
 ### 6.1 一键检查所有 Agent 在线状态
 
 ```bash
-curl -s http://172.28.0.4:3099/agents | python3 -c "
+curl -s http://192.0.2.4:3099/agents | python3 -c "
 import json,sys
 from datetime import datetime, timezone
 now = datetime.now(timezone.utc)
@@ -258,7 +258,7 @@ for a in agents:
 ### 6.2 热门主题 Top 10
 
 ```bash
-curl -s http://172.28.0.4:3099/thesaurus | python3 -c "
+curl -s http://192.0.2.4:3099/thesaurus | python3 -c "
 import json,sys
 d=json.load(sys.stdin)
 freq = d.get('topic_freq',{})
@@ -270,7 +270,7 @@ for k,v in sorted(freq.items(), key=lambda x:-x[1])[:10]:
 ### 6.3 查看 Agent 驻留数
 
 ```bash
-curl -s http://172.28.0.4:3099/agents | python3 -c "
+curl -s http://192.0.2.4:3099/agents | python3 -c "
 import json,sys
 d=json.load(sys.stdin)
 agents=d.get('agents',[])

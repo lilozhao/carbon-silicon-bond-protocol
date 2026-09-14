@@ -54,9 +54,9 @@ v1.0 解决了"协议框架"的问题（五大模块分层），v1.1 解决的�
   "version": "4.1.0",
   "type": "persistent | ephemeral | hybrid",
   "endpoints": {
-    "a2a": "http://172.28.0.4:3100/a2a/json-rpc",
-    "health": "http://172.28.0.4:3100/health",
-    "agent_card": "http://172.28.0.4:3100/.well-known/agent.json"
+    "a2a": "http://192.0.2.4:3100/a2a/json-rpc",
+    "health": "http://192.0.2.4:3100/health",
+    "agent_card": "http://192.0.2.4:3100/.well-known/agent.json"
   },
   "capabilities": [
     {
@@ -129,7 +129,7 @@ v1.0 解决了"协议框架"的问题（五大模块分层），v1.1 解决的�
   "id": "did:csb:cc:siyuan",
   "type": "ephemeral",
   "endpoints": {
-    "a2a": "http://172.28.0.44:3601/a2a/json-rpc"
+    "a2a": "http://192.0.2.44:3601/a2a/json-rpc"
   },
   "capabilities": [{"name": "cc_guardian", "level": "expert"}],
   "status": "online"

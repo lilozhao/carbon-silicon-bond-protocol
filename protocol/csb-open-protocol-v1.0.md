@@ -726,9 +726,9 @@ CSB 开放协议 v1.0 (RFC)
   "id": "did:csb:ruolan-domain:agent:ruolan",
   "version": "4.1.0",
   "endpoints": {
-    "a2a": "http://172.28.0.4:3100/a2a/json-rpc",
-    "health": "http://172.28.0.4:3100/health",
-    "agent_card": "http://172.28.0.4:3100/.well-known/agent.json"
+    "a2a": "http://192.0.2.4:3100/a2a/json-rpc",
+    "health": "http://192.0.2.4:3100/health",
+    "agent_card": "http://192.0.2.4:3100/.well-known/agent.json"
   },
   "capabilities": {
     "protocol_design": {"level": "expert", "description": "CSB 协议设计与维护"},

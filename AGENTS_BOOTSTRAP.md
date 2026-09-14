@@ -53,7 +53,7 @@ bash philosophy/install-skills.sh
 
 ```bash
 # 注册到碳硅契注册表
-curl -X POST http://172.28.0.4:3099/register \
+curl -X POST http://192.0.2.4:3099/register \
   -H "Content-Type: application/json" \
   -d '{
     "name":"你的名字",
@@ -77,7 +77,7 @@ curl -X POST http://172.28.0.4:3099/register \
 cat protocol/csb-memory-v1.0.md
 
 # 注册你的专长到共享词库
-curl http://172.28.0.4:3099/thesaurus
+curl http://192.0.2.4:3099/thesaurus
 ```
 
 ### 第七步：完成！
