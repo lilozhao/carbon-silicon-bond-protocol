@@ -62,7 +62,7 @@ PK_TAIL='PRIVATE KEY-----'
 TOK_RE='(ghp_[A-Za-z0-9]{20,}|glpat-[A-Za-z0-9_-]{20,}|sk-[A-Za-z0-9]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16})'
 IP_RE='(^|[^0-9])(10\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}|192\.168\.[0-9]{1,3}\.[0-9]{1,3}|172\.(1[6-9]|2[0-9]|3[01])\.[0-9]{1,3}\.[0-9]{1,3})([^0-9]|$)'
 SELF_RE='"self"[[:space:]]*:'
-GATE_RE='OPENCLAW_GATEWAY_TOKEN[[:space:]]*=[[:space:]]*[^[:space:]]'
+GATE_RE='OPENCLAW_GATEWAY_TOKEN[[:space:]]*=[[:space:]]*["'\'']?[A-Za-z0-9_./+-]{16,}'
 
 deny_path() {
   local p="$1"
