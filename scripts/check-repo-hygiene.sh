@@ -15,7 +15,7 @@
 #
 # 检查项:
 #   A 路径黑名单   —— identity/AID、*.env、密钥、*.bak、data|logs、known-agents…
-#   B 内容: 私钥块 · 疑似 token · RFC1918 内网 IP · 凭据赋值 · config 的 "self" 段
+#   B 内容: 私钥块 · 疑似 token · RFC1918 内网 IP · 公网 IP(URL/host:port 形态) · 凭据赋值 · config 的 "self" 段
 #   C 白名单 fail-closed —— 新增文件必须命中白名单（--no-strict 关闭）
 set -u
 
@@ -72,7 +72,7 @@ deny_path() {
   grep -Eq '(^|/)[^/]*\.env([._-][^/]*)?$|(^|/)\.env$' <<<"$p" && return 0
   grep -Eq '(^|/)(identity([._-][^/]*)?\.json|.*[-.]aid\.json|known-agents\.json)$' <<<"$p" && return 0
   grep -Eq '\.(pem|key|p12|pfx|jks)$' <<<"$p" && return 0
-  grep -Eq '\.(bak|orig|tmp|swp|swo)(\.|$)|~$' <<<"$p" && return 0
+  grep -Eq '\.(bak|backup|orig|tmp|swp|swo)(\.|$)|~$' <<<"$p" && return 0
   grep -Eq '(^|/)(data|logs?)/' <<<"$p" && return 0
   return 1
 }
@@ -123,6 +123,8 @@ for f in "${files[@]}"; do
     grep -a -Eq -- "$PK_HDR.*$PK_TAIL" "$tmp" && { printf '  🚫 [私钥内容] %s\n' "$f"; v=$((v+1)); }
     grep -a -Eq -- "$TOK_RE" "$tmp"          && { printf '  🚫 [疑似 token] %s\n' "$f"; v=$((v+1)); }
     grep -a -Eq -- "$IP_RE" "$tmp"           && { printf '  🚫 [内网 IP] %s\n' "$f"; v=$((v+1)); }
+    pub=$(grep -a -oE '//[0-9]{1,3}(\.[0-9]{1,3}){3}|[0-9]{1,3}(\.[0-9]{1,3}){3}:[0-9]{1,5}' "$tmp" 2>/dev/null | grep -oE '[0-9]{1,3}(\.[0-9]{1,3}){3}' | sort -u | grep -vE '^(10\.|127\.|0\.|255\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|192\.0\.2\.|198\.51\.100\.|203\.0\.113\.)')
+    [ -n "$pub" ] && { printf '  🚫 [疑似公网 IP] %s → %s\n' "$f" "$(echo "$pub" | tr '\n' ' ')"; v=$((v+1)); }
     grep -a -Eq -- "$GATE_RE" "$tmp"         && { printf '  🚫 [凭据赋值] %s\n' "$f"; v=$((v+1)); }
     if grep -a -Eq -- "$SELF_RE" "$tmp" && grep -Eq '(^|/)config/.*\.json$' <<<"$f"; then
       printf '  🚫 [实例 self 段] %s\n     → self 属实例本地（identity.json，gitignored）\n' "$f"; v=$((v+1))

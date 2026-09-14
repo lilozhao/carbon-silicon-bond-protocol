@@ -35,7 +35,7 @@
 | 身份 / 自我 | `identity.json` · AID 私钥 · `config` 里的 `self` 段 | 每实例不同，混入即串台 |
 | 私钥 / 凭据 | `*.pem` · `*-private-key.pem` · `.env` `*.env` | 泄露 = 可被冒名 |
 | 运行时数据 | `data/` · `logs/` · `*-tasks.json` · `*inbox*.jsonl` | `pull` 会覆盖 / 丢失 |
-| 备份 / 临时 | `*.bak` `*.bak.*` `*.orig` `*.tmp` | 噪音，且可能残留旧秘密 |
+| 备份 / 临时 | `*.bak` `*.bak.*` `*.backup` `*.orig` `*.tmp` | 噪音，且可能残留旧秘密 |
 | 本机发现 | 含 IP / 地址清单的文件（如 `known-agents.json`） | 地址因机而异 → 走注册表或运行时派生 |
 | 其他 | 含真 token / 宿主真名 / 真 IP 的任何文件 | 脱敏红线 |
 
@@ -82,7 +82,7 @@
 | `... --no-strict` | 只查黑名单，不强制白名单 |
 | `... --install-hook` | 写 `.git/hooks/pre-commit`，命中即拒绝提交 |
 
-- **检查项**：① 路径黑名单 ② 内容（私钥块 / 疑似 token / RFC1918 内网 IP / 凭据赋值 / `config` 的 `self` 段）③ 白名单 **fail-closed**（**新增**文件须命中 §1）
+- **检查项**：① 路径黑名单 ② 内容（私钥块 / 疑似 token / RFC1918 内网 IP / 公网 IP（URL·host:port 形态）/ 凭据赋值 / `config` 的 `self` 段）③ 白名单 **fail-closed**（**新增**文件须命中 §1）
 - **退出码**：`0` 通过 · `1` 命中 · `2` 用法错误
 - **日常守门**：各实例把本规则接进自己的 guard 巡检。
 

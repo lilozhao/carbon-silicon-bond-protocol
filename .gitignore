@@ -11,3 +11,4 @@ Thumbs.db
 protocol/logs/
 legacy/lanapi/data/
 philosophy/skills/csb-community-client/scripts/identity.json
+*.backup
