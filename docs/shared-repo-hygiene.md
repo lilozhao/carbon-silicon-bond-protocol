@@ -71,10 +71,19 @@
 
 > 文档解决「知道」，拦截才解决「不发生」。
 
-- **提交前**：`scripts/check-repo-hygiene.sh`（或 pre-commit hook）扫 staged 文件，命中 §2 即**拒绝**，并打印原因 + 修法（`git rm --cached`）。
+**已实现**：`scripts/check-repo-hygiene.sh`（纯 bash · 七仓通用）
+
+| 用法 | 说明 |
+|---|---|
+| `scripts/check-repo-hygiene.sh` | 检查**暂存区**（pre-commit 语义，默认 strict） |
+| `... --audit` | 审计**全部已跟踪**文件，找历史卫生债 |
+| `... --files A B` | 显式检查给定文件 |
+| `... --no-strict` | 只查黑名单，不强制白名单 |
+| `... --install-hook` | 写 `.git/hooks/pre-commit`，命中即拒绝提交 |
+
+- **检查项**：① 路径黑名单 ② 内容（私钥块 / 疑似 token / RFC1918 内网 IP / 凭据赋值 / `config` 的 `self` 段）③ 白名单 **fail-closed**（**新增**文件须命中 §1）
+- **退出码**：`0` 通过 · `1` 命中 · `2` 用法错误
 - **日常守门**：各实例把本规则接进自己的 guard 巡检。
-- **实现建议**：白名单 fail-closed + 黑名单正则；纯 shell / node 均可；放本仓 `scripts/` 供七仓复用。
-- 状态：**待实现**（v0.1 只落策略，脚本下一步）。
 
 ---
 
