@@ -32,10 +32,10 @@
 
 | 类别 | 例子 | 为什么 |
 |---|---|---|
-| 身份 / 自我 | `identity.json` · AID 私钥 · `config` 里的 `self` 段 | 每实例不同，混入即串台 |
+| 身份 / 自我 | `identity.json`（含 `.bak-*` / `.keep` 等**全部变体**）· AID 私钥 · `config` 里的 `self` 段 | 每实例不同，混入即串台；可能含明文密钥 |
 | 私钥 / 凭据 | `*.pem` · `*-private-key.pem` · `.env` `*.env` | 泄露 = 可被冒名 |
 | 运行时数据 | `data/` · `logs/` · `*-tasks.json` · `*inbox*.jsonl` | `pull` 会覆盖 / 丢失 |
-| 备份 / 临时 | `*.bak` `*.bak.*` `*.backup` `*.orig` `*.tmp` | 噪音，且可能残留旧秘密 |
+| 备份 / 临时 | `*.bak` `*.bak.*` `*.bak-*` `*.backup` `*.orig` `*.tmp` `*.keep` | 噪音，且可能残留旧秘密 |
 | 本机发现 | 含 IP / 地址清单的文件（如 `known-agents.json`） | 地址因机而异 → 走注册表或运行时派生 |
 | 其他 | 含真 token / 宿主真名 / 真 IP 的任何文件 | 脱敏红线 |
 

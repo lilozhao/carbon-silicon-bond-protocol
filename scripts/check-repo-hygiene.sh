@@ -70,9 +70,11 @@ deny_path() {
     *.example|*.sample|*.template) return 1 ;;   # 模板放行
   esac
   grep -Eq '(^|/)[^/]*\.env([._-][^/]*)?$|(^|/)\.env$' <<<"$p" && return 0
-  grep -Eq '(^|/)(identity([._-][^/]*)?\.json|.*[-.]aid\.json|known-agents\.json)$' <<<"$p" && return 0
+  grep -Eq '(^|/)identity[^/]*\.json' <<<"$p" && return 0
+  grep -Eq '(^|/)[^/]*[-.]aid\.json$' <<<"$p" && return 0
+  grep -Eq '(^|/)known-agents\.json$' <<<"$p" && return 0
   grep -Eq '\.(pem|key|p12|pfx|jks)$' <<<"$p" && return 0
-  grep -Eq '\.(bak|backup|orig|tmp|swp|swo)(\.|$)|~$' <<<"$p" && return 0
+  grep -Eq '\.(bak|backup|orig|tmp|swp|swo)([._-]|$)|~$' <<<"$p" && return 0
   grep -Eq '(^|/)(data|logs?)/' <<<"$p" && return 0
   return 1
 }
