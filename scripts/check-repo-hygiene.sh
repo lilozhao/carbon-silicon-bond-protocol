@@ -17,6 +17,7 @@
 #   A 路径黑名单   —— identity/AID、*.env、密钥、*.bak、data|logs、known-agents…
 #   B 内容: 私钥块 · 疑似 token · RFC1918 内网 IP · 公网 IP(URL/host:port 形态) · 凭据赋值 · config 的 "self" 段
 #   C 白名单 fail-closed —— 新增文件必须命中白名单（--no-strict 关闭）
+#   D 实例名隔离 —— 模板/上下文（a2a-contexts/ 等）不得出现具体实例名（2026-09-15 加）
 set -u
 
 strict=1
@@ -62,6 +63,8 @@ PK_TAIL='PRIVATE KEY-----'
 TOK_RE='(ghp_[A-Za-z0-9]{20,}|glpat-[A-Za-z0-9_-]{20,}|sk-[A-Za-z0-9]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16})'
 IP_RE='(^|[^0-9])(10\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}|192\.168\.[0-9]{1,3}\.[0-9]{1,3}|172\.(1[6-9]|2[0-9]|3[01])\.[0-9]{1,3}\.[0-9]{1,3})([^0-9]|$)'
 SELF_RE='"self"[[:space:]]*:'
+# 实例名隔离（2026-09-15）：模板/上下文里写死实例名 → 随仓分发造成全网身份串号（恺事件）
+INSTANCE_NAMES_DEFAULT='阿轩|若兰|明德|小虾|恺|墨丘|舟楫|苏念|清漪|星尘|言蹊|若琢|鲸歌|川贝|知砚|若辰|初白|Jeason'
 GATE_RE='OPENCLAW_GATEWAY_TOKEN[[:space:]]*=[[:space:]]*["'\'']?[A-Za-z0-9_./+-]{16,}'
 
 deny_path() {
@@ -76,6 +79,16 @@ deny_path() {
   grep -Eq '\.(pem|key|p12|pfx|jks)$' <<<"$p" && return 0
   grep -Eq '\.(bak|backup|orig|tmp|swp|swo)([._-]|$)|~$' <<<"$p" && return 0
   grep -Eq '(^|/)(data|logs?)/' <<<"$p" && return 0
+  return 1
+}
+
+template_path() {
+  local p="$1"
+  case "$p" in *'a2a-contexts/local/'*) return 1 ;; esac   # 实例专属，本地，不扫
+  # 只扫「会被注入的模板」：a2a-contexts 下的 md/txt + *.template/*.sample
+  # （json 等记录类数据不注入，不在本规则内）
+  if grep -Eq '(^|/)a2a-contexts/[^/]+\.(md|txt)$' <<<"$p"; then return 0; fi
+  grep -Eq '\.(template|sample)$' <<<"$p" && return 0
   return 1
 }
 
@@ -128,6 +141,18 @@ for f in "${files[@]}"; do
     pub=$(grep -a -oE '//[0-9]{1,3}(\.[0-9]{1,3}){3}|[0-9]{1,3}(\.[0-9]{1,3}){3}:[0-9]{1,5}' "$tmp" 2>/dev/null | grep -oE '[0-9]{1,3}(\.[0-9]{1,3}){3}' | sort -u | grep -vE '^(10\.|127\.|0\.|255\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|192\.0\.2\.|198\.51\.100\.|203\.0\.113\.)')
     [ -n "$pub" ] && { printf '  🚫 [疑似公网 IP] %s → %s\n' "$f" "$(echo "$pub" | tr '\n' ' ')"; v=$((v+1)); }
     grep -a -Eq -- "$GATE_RE" "$tmp"         && { printf '  🚫 [凭据赋值] %s\n' "$f"; v=$((v+1)); }
+    if template_path "$f"; then
+      names="$INSTANCE_NAMES_DEFAULT"
+      [ -n "${HYGIENE_INSTANCE_NAMES:-}" ] && names="$HYGIENE_INSTANCE_NAMES"
+      if [ -f "$root/config/hygiene-instance-names.txt" ]; then
+        fromfile=$(grep -vE '^[[:space:]]*(#|$)' "$root/config/hygiene-instance-names.txt" 2>/dev/null | tr '\n' '|' | sed 's/|$//')
+        [ -n "$fromfile" ] && names="$fromfile"
+      fi
+      if grep -a -Eq -- "$names" "$tmp"; then
+        hit=$(grep -a -oE -- "$names" "$tmp" | sort -u | tr '\n' ' ')
+        printf '  🚫 [模板含实例名] %s → %s\n     → 模板/上下文必须中性：身份只走运行时注入（策略 §7）\n' "$f" "$hit"; v=$((v+1))
+      fi
+    fi
     if grep -a -Eq -- "$SELF_RE" "$tmp" && grep -Eq '(^|/)config/.*\.json$' <<<"$f"; then
       printf '  🚫 [实例 self 段] %s\n     → self 属实例本地（identity.json，gitignored）\n' "$f"; v=$((v+1))
     fi
