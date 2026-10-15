@@ -15,6 +15,8 @@
 
 **与既有对应**: `a2a-bridge-core.js` 审计 `evidence:{ref,detail}` · CSB-Memory raw/core · BID-H 沉默不采/限期删数 · 宪章 10.1 上下文卫生 + 案例 001。
 
+**进展**: L1 的工程实体已起 spec —— `csb-a2a-aip/specs/SPEC-A2A-0002`（A2A 消息最小信息约定 · draft · 2026-10-16）。
+
 ---
 
 ## CSB-AEP v1.1 — Agent 评测协议正式版（2026-10-07）
