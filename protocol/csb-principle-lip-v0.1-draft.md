@@ -43,7 +43,7 @@
 
 | LIP | CSB 既有 |
 |---|---|
-| L1 默认最小 / 按需展开 | `a2a-bridge-core.js` 审计事件已用 `evidence:{ref,detail}`（缺**消息侧**显式 `evidence`/`raw_ref` 双字段——落点 1 待补） |
+| L1 默认最小 / 按需展开 | `a2a-bridge-core.js` 审计事件已用 `evidence:{ref,detail}`（**消息侧**显式 `evidence`/`raw_ref` 双字段已起 spec：`csb-a2a-aip/specs/SPEC-A2A-0002`（draft · 2026-10-16）） |
 | L2 本域处理 | CSB-Memory `raw`（沙箱留守）↔ `core`（证据进上下文）；已有"存"，缺"喂"（context gating） |
 | L3 最小留存 | BID-H 主权第 4 条「沉默不采」+ A2 期限（限期删数/匿名化）——**同构** |
 | 上下文卫生 | `csb-charter` 第十条 10.1「上下文卫生」+ 案例 001「上下文污染 → 身份漂移」的**工程解** |
