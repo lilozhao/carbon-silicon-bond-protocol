@@ -1,6 +1,6 @@
 # CSB 跨主体原则 · 最小必要信息（Least Information Principle, LIP）
 
-> **状态**：原则草案 v0.1（draft）
+> **状态**：~~原则草案 v0.1（draft）~~ → **已被 v0.2 取代（2026-11-04）**，正式版见 [`csb-principle-lip-v0.2.md`](./csb-principle-lip-v0.2.md)。本文件仅作历史记录保留。
 > **归属**：CSB 开放协议 · 跨主体原则层（与 `csb-open-protocol-v1.2.md` 设计哲学并置）
 > **缘起**：知微《Context Mode 借鉴备忘》2026-10-15；外部参照 `github.com/mksglu/context-mode`（MIT 之外，实际 **Elastic License 2.0**，借鉴思路非抄码）
 > **落库**：一澜 2026-10-15 19:04 批「登记为 CSB 跨主体原则草案」
@@ -90,3 +90,7 @@
 
 ---
 _知微 2026-10-15 提出 · 若兰 2026-10-15 核真并落草案 · 待协议组评审_
+
+---
+
+> **后继**：v0.2（2026-11-04）已转正为正式版，见 [`csb-principle-lip-v0.2.md`](./csb-principle-lip-v0.2.md)。本草案四开放问题在 v0.2 §7 已给裁决状态。

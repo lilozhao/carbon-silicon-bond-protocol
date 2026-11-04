@@ -12,7 +12,8 @@
 <p align="center">
   <img src="https://img.shields.io/badge/版本-v1.2-e94560" alt="v1.2">
   <img src="https://img.shields.io/badge/协议条目-32%20条-blue" alt="32条">
-  <img src="https://img.shields.io/badge/Memory-v1.1-green" alt="Memory v1.1">
+  <img src="https://img.shields.io/badge/Memory-v1.3-green" alt="Memory v1.3">
+  <img src="https://img.shields.io/badge/LIP-v0.2-blueviolet" alt="LIP v0.2">
   <img src="https://img.shields.io/badge/Security-v1.1.0-orange" alt="Security v1.1.0">
   <img src="https://img.shields.io/badge/AEP-v1.1-yellow" alt="AEP v1.1">
   <img src="https://img.shields.io/badge/A2A-v5.3.14-brightgreen" alt="A2A v5.3.14">
@@ -62,10 +63,13 @@
 | 模块 | 状态 | 落地仓库 |
 |------|:----:|----------|
 | **CSB-A2A** 通信层（兼容 Google A2A v1.0） | ✅ v5.3.14 | [csb-a2a-aip](https://gitee.com/lilozhao/csb-a2a-aip) |
-| **CSB-Memory** 记忆系统 | ✅ v1.5（476 用例） | [csb-memory](https://gitee.com/lilozhao/csb-memory) |
+| **CSB-Memory** 记忆系统 | ✅ 协议 v1.3（追认）· 实现 v1.5（476 用例） | [csb-memory](https://gitee.com/lilozhao/csb-memory) |
 | **CSB-Security** 五层安全体系 | ✅ v1.1.0（337 用例） | [csb-security](https://gitee.com/lilozhao/csb-security) |
 | **CSB-AEP** Agent 质量评估 | ✅ v1.1（v2.4 落地 · Harness 工程域） | [csb-aep](https://gitee.com/lilozhao/csb-aep) |
+| **CSB-LIP** 跨主体最小必要信息原则 | ✅ v0.2（承 SPEC-A2A-0002/0003） | [`protocol/csb-principle-lip-v0.2.md`](./protocol/csb-principle-lip-v0.2.md) |
 | **CSB-Charter** 关系伦理宪章 | ✅ v1.3.0 | [csb-charter](https://gitee.com/lilozhao/csb-charter) |
+| **CSB-Metacognition** 元认知系统 | ✅ v2.2.0（MC0–MC3 · 6 问） | [csb-metacognition](https://gitee.com/lilozhao/csb-metacognition) |
+| **CSB-Compliance-Degree** 迎合度度量 | ✅ v2.1.0（三维度 · 度量非约束） | [csb-compliance-degree](https://gitee.com/lilozhao/csb-compliance-degree) |
 | **CSB-Management** 注册管理与 Dashboard API | ✅ | csb-a2a-aip |
 | **CSB-Trust** 信任与安全体系 | ✅ | csb-security |
 | **CSB-Identity** 身份与认证 | ✅ | csb-security |
@@ -118,6 +122,9 @@ carbon-silicon-bond-protocol/
 ├── protocol/                          ← CSB 开放协议（实践）
 │   ├── csb-open-protocol-v1.2.md      ← 完整协议规范（32条，最新版）
 │   ├── CSB-Memory-v1.1.md             ← 记忆协议（v1.1：RAW 全量底仓层）
+│   ├── CSB-Memory-v1.3.md             ← 记忆协议（v1.3：追认备案 · BID/证据门槛/不可篡改/可扩展 kind）
+│   ├── csb-principle-lip-v0.2.md      ← 跨主体原则 LIP（v0.2：转正 · 承 SPEC-A2A-0002/0003）
+│   ├── csb-organizational-layer-registry.md  ← 组织层三仓入册（标准→实现→版本 三列映射）
 │   ├── csb-security-v1.1.md           ← 五层安全协议（v1.1：追认备案 · pin/同源/三态/灰度/联邦）
 │   ├── csb-security-v1.0.md           ← 五层安全协议（v1.0，前身）
 │   ├── csb-AEP-v1.1.md                ← 质量评估协议（v1.1：三层域 + Harness 工程域 20%）
@@ -137,7 +144,8 @@ carbon-silicon-bond-protocol/
 ## 📜 版本
 
 - 开放协议主版本：**v1.2**（`protocol/csb-open-protocol-v1.2.md`，32 条）
-- 子协议：**CSB-Memory v1.1**（协议文档 2026-08-19 · 实现 v1.5.0）· **CSB-Security v1.1**（2026-11-04 追认备案 · 实现 v1.1.0）· **CSB-AEP v1.1**（2026-10-07 · 实现 v2.4.2）· **CSB-Charter v1.3.0**
+- 子协议：**CSB-Memory v1.3**（2026-11-04 追认备案 · 实现 v1.5.0 · v1.1 全文保留）· **CSB-Security v1.1**（2026-11-04 追认备案 · 实现 v1.1.0）· **CSB-AEP v1.1**（2026-10-07 · 实现 v2.4.2）· **CSB-LIP v0.2**（2026-11-04 转正）
+- 组织层（已入册）：**CSB-Charter v1.3.0** · **CSB-Metacognition v2.2.0** · **CSB-Compliance-Degree v2.1.0** → 见 [`protocol/csb-organizational-layer-registry.md`](./protocol/csb-organizational-layer-registry.md)
 - 落地实现：**CSB-A2A v5.3.14**（csb-a2a-aip）· Memory 476 用例 · Security 337 用例 100% 通过
 - 数字口径：各仓库 README 声明的用例数可用工作区脚本 `node scripts/verify-readme-numbers.js` 核验（跑真实测试对照声明）
 - 状态：**接受社区审阅** · 变更记录见 [`protocol/CHANGELOG.md`](./protocol/CHANGELOG.md)

@@ -5,6 +5,62 @@
 
 ---
 
+## CSB-Memory v1.3 — 追认备案（2026-11-04）
+
+**版本**: 1.3.0 | **状态**: ✅ 追认备案（Implementation Ratification）
+**文件**: `protocol/CSB-Memory-v1.3.md`（v1.1 全文保留，不覆盖）
+**演进**: v1.1（2026-08-19，MEM-012 全量底仓层）→ v1.3（2026-11-04，补记 v1.2/v1.3/v1.5 三条跨主体语义）
+
+**为什么跳号（1.1 → 1.3）**：协议文档停在 1.1，实现已到 v1.5.0，中间四个版本在协议侧**零记录**。协议 1.2 从未单独发布，内容并入本版 §2；跳号是为了与实现版本号对齐（版本号单一事实源）。
+
+**新增章节**：
+- **MEM-014 不可篡改的记忆演化**（§2.1–2.2）—— 三条不变量（内容不变 / 变更留痕 / 修正靠新条目）+ 哈希链两种失败可区分（`hash_chain_broken` vs `entry_tampered`）
+- **MEM-015 资产晋升门槛**（§2.3）—— 六类证据白名单 + `verified_by ≠ producer` 防自证 + 批量 80% 门槛
+- **MEM-016 BID 关系信号**（§3）—— 字段契约（kind/peer/direction/state）+ **P-11 四门**（word/pos/require_next/evidence）+ **P-12 清单纪律**（允许空不允许沉默）+ 四态回填「无锚不改判」
+- **MEM-018 可扩展 kind 与来源分层**（§4）—— 三条边界（默认三类不变 / 须报出 / 可扩展）+ **`tier`（exchange|local-only）与 `anchor` 跨主体含义**
+
+**未立条款**：v1.4 词表调参（仅记基线 `P 100 / R 88.2 / F1 93.7`）· EXPERIENCE 层（记为观察项）
+
+**判据**（已实测）：`test-evolution 20/20` · `test-promotion 22/22` · `bid-lexicon 32/32` · `bid-signal 83/83` · `bid-state 52/52` · `bid-p15 27/27`
+
+**诚实边界**：未跑 476 全量；「有测试」≠「线上在跑」；`known_fp`/`known_misses` 不可跨实例复用。
+
+---
+
+## CSB 跨主体原则 LIP v0.2 — 转正（2026-11-04）
+
+**版本**: 0.2.0 | **状态**: ✅ 正式版（追认备案）
+**文件**: `protocol/csb-principle-lip-v0.2.md`（v0.1-draft 保留）
+**演进**: v0.1-draft（2026-10-15，挂 20 天）→ v0.2（2026-11-04，转正）
+
+**为什么现在转正**：草案挂着的 20 天里，两个工程实体做出来了——SPEC-A2A-0002（done v1.1）与 SPEC-A2A-0003（approved v1.3 / implementing）。**原则层落后于工程层**，这是 A 类「实现超前」里最该先补的一条：它是跨主体行为的默认值。
+
+**新增**（原则文字一字未动，只补工程承接）：
+- §2.1 三子则的工程语义（L1→消息 schema · L2→数据侧权威 · L3→授权生命周期）
+- §3 **工程实体映射表**：每条子则 → spec → 状态 → 可复跑判据
+- §7 四个开放问题的裁决状态（raw_ref 粒度=事件 id 级 · 逐次授权+契约预授权仅登记方向 · 数据侧权威裁决 · 借鉴原则不抄实现）
+- §8 转正判据 + 诚实边界
+
+**判据**（已实测）：`grep -o "SPEC-A2A-000[23]"` → **14 处** · `tests/min-info.test.js` **12/12** · `tests/expansion.test.js` **13/13** · 文件已非 draft
+
+---
+
+## 组织层三仓入册（2026-11-04）
+
+**版本**: 1.0 | **状态**: ✅ 首次入册
+**文件**: `protocol/csb-organizational-layer-registry.md` + 三张单仓登记卡
+
+**为什么**：协议 README 一直写「CSB 全家桶」11 个模块，但 `protocol/` 下 charter/metacog/compliance 一个都没有（`ls | grep -ic` = 0）。三仓都在跑、各有自检，却没被登记为协议的一部分——这是「实现跑在协议前面」的第三种形态。
+
+**内容**：
+- 三仓登记卡：`csb-charter-registry.md`（v1.3.0）· `csb-metacognition-registry.md`（v2.2.0）· `csb-compliance-degree-registry.md`（v2.1.0）
+- **三列映射表**：标准文档 → 承接实现 → 版本号（三/四载体咬合）
+- 职责边界：本仓是**唯一登记处**，但**只登记不复制**（版本号是唯一同步信号）
+
+**判据**（已实测）：`ls protocol/ | grep -ic 'charter\|metacog\|compli'` → **3** · charter-lint **13/13 PASS** · evomap **13 项 PASS** · analyzer-v3 **15/15** · correction-retention **11/11**
+
+---
+
 ## CSB-Security v1.1 — 追认备案（2026-11-04）
 
 **版本**: 1.1.0 | **状态**: ✅ 追认备案（Implementation Ratification）
@@ -36,7 +92,9 @@
 
 ---
 
-## CSB 跨主体原则 · 最小必要信息（LIP）v0.1 — 草案（2026-10-15）
+## CSB 跨主体原则 · 最小必要信息（LIP）v0.1 — 草案（2026-10-15，已被 v0.2 取代）
+
+> ⚠️ **已转正**：2026-11-04 起正式版为 [`csb-principle-lip-v0.2.md`](./csb-principle-lip-v0.2.md)。本草案保留作历史记录。
 
 **版本**: 0.1（draft） | **状态**: 🟡 草案待议
 **文件**: `protocol/csb-principle-lip-v0.1-draft.md`
