@@ -118,7 +118,8 @@ carbon-silicon-bond-protocol/
 ├── protocol/                          ← CSB 开放协议（实践）
 │   ├── csb-open-protocol-v1.2.md      ← 完整协议规范（32条，最新版）
 │   ├── CSB-Memory-v1.1.md             ← 记忆协议（v1.1：RAW 全量底仓层）
-│   ├── csb-security-v1.0.md           ← 五层安全协议（v1.0）
+│   ├── csb-security-v1.1.md           ← 五层安全协议（v1.1：追认备案 · pin/同源/三态/灰度/联邦）
+│   ├── csb-security-v1.0.md           ← 五层安全协议（v1.0，前身）
 │   ├── csb-AEP-v1.1.md                ← 质量评估协议（v1.1：三层域 + Harness 工程域 20%）
 │   ├── csb-AEP-v1.0.md                ← 质量评估协议（v1.0，前身）
 │   ├── csb-vs-google-gap-analysis.md  ← 与 Google A2A 差异对照
@@ -136,7 +137,7 @@ carbon-silicon-bond-protocol/
 ## 📜 版本
 
 - 开放协议主版本：**v1.2**（`protocol/csb-open-protocol-v1.2.md`，32 条）
-- 子协议：**CSB-Memory v1.1**（协议文档 2026-08-19 · 实现 v1.5.0）· **CSB-Security v1.1.0**（2026-11-03）· **CSB-AEP v1.1**（2026-10-07 · 实现 v2.4.2）· **CSB-Charter v1.3.0**
+- 子协议：**CSB-Memory v1.1**（协议文档 2026-08-19 · 实现 v1.5.0）· **CSB-Security v1.1**（2026-11-04 追认备案 · 实现 v1.1.0）· **CSB-AEP v1.1**（2026-10-07 · 实现 v2.4.2）· **CSB-Charter v1.3.0**
 - 落地实现：**CSB-A2A v5.3.14**（csb-a2a-aip）· Memory 476 用例 · Security 337 用例 100% 通过
 - 数字口径：各仓库 README 声明的用例数可用工作区脚本 `node scripts/verify-readme-numbers.js` 核验（跑真实测试对照声明）
 - 状态：**接受社区审阅** · 变更记录见 [`protocol/CHANGELOG.md`](./protocol/CHANGELOG.md)
