@@ -263,7 +263,7 @@
 | A2A-018 | API 版本管理 | ✅ | A2A-Version 请求头 |
 | A2A-019 | 流量控制与背压 | ✅ | `RateLimiter` (60rpm) |
 | A2A-020 | 可观测性 | ✅ | `a2a-observability.js` |
-| A2A-021 | 端到端加密 | ⬜ | `a2a-e2e-encryption.js`（模块就绪，未启用） |
+| A2A-021 | 端到端加密 | 🟡 三态 | `a2a-e2e-encryption.js`（诚实降级：`enabled` / `degraded` / `disabled`，见下方补注） |
 | A2A-022 | 审计日志规范 | ✅ | `audit.js` + `a2a-observability.js` |
 | A2A-023 | 协作中能力变更的版本冲突处理 | ✅ | 版本协商联动 |
 | A2A-024 | 上下文摘要增强 | ✅ | `context-manager-v2.js` |
@@ -311,11 +311,24 @@ A2A-001 ✅ A2A-002 ✅ A2A-003 ✅ A2A-004 ✅ A2A-005 ✅
 A2A-006 ✅ A2A-007 ✅ A2A-008 ✅ A2A-009 ✅ A2A-010 ✅
 A2A-011 ✅ A2A-012 ✅ A2A-013 ✅ A2A-014 ✅ A2A-015 ✅
 A2A-016 ✅ A2A-017 ✅ A2A-018 ✅ A2A-019 ✅ A2A-020 ✅
-A2A-021 ⬜ A2A-022 ✅ A2A-023 ✅ A2A-024 ✅ A2A-025 ✅
+A2A-021 🟡 A2A-022 ✅ A2A-023 ✅ A2A-024 ✅ A2A-025 ✅
 A2A-026 ✅ A2A-027 ✅ 🆕
 ```
 
-**统计**: 27 条中 26 条 Accepted ✅，1 条 Review ⬜ (A2A-021 E2E)
+**统计**: 27 条中 26 条 Accepted ✅，1 条部分落地 🟡（A2A-021 E2E）
+
+> **A2A-021 补注（2026-11-04 校）**：不再用「模块就绪，未启用」这个描述 —— 它掩盖了三种不同的状态。
+> 当前实现为**三态**（`csb-security/lib/transport/e2e-encryption.js` `getStatus()`）：
+>
+> | 态 | 含义 | reason |
+> |---|---|---|
+> | `enabled` | 有主密钥 **且** 出站真加密 | — |
+> | `degraded` | 有密钥但出站未真加密 | `not_implemented` |
+> | `disabled` | 无主密钥 | `no_master_key` |
+>
+> 硬约束：`outboundEncrypted=true` 但无主密钥 → **构造时抛错**（杜绝「声明加密却没密钥」）；无密钥时 `verifySignature()` 返回 `false`。
+> 若兰实例 2026-11-04 实测：`status=disabled` · `reason=no_master_key` · `outboundEncrypted=false`。
+> 依据：`csb-security` v1.1.0 · `csb-a2a-aip` v5.3.13（P0-4）。
 
 ---
 
