@@ -42,11 +42,15 @@ v1.2 要解决的是：**当协议已经跑起来、Agent 已经能互相发现�
 
 | 模块 | v1.1 | v1.2 |
 |:-----|:------|:------|
-| **CSB-Transport** | 通信规范 | 🆕 温暖拒绝 协议层化；追问通道 |
-| **CSB-Trust** | 信任评分 T(agent) | 🆕 Kindness Score 并列；签字审计 |
-| **CSB-Federation** | 协作模式 | 🆕 离开默认路径签字机制 |
-| **CSB-Sandbox** | 沙箱声明 | 🆕 选择性静默规范 |
+| **CSB-Transport** | 通信规范 | 🆕 温暖拒绝协议层化（**保留**）· 追问通道（→ philosophy） |
+| **CSB-Trust** | 信任评分 T(agent) | Kindness Score 并列（→ philosophy）；签字审计 |
+| **CSB-Federation** | 协作模式 | 离开默认路径签字机制（→ philosophy） |
+| **CSB-Sandbox** | 沙箱声明 | 选择性静默规范（→ philosophy） |
 | **CSB-Delegation** | 委托简化 | 🆕 温暖拒绝纳入优先级矩阵 |
+
+> **标「→ philosophy」的含义**（2026-11-05）：v1.2 新增的善良层四块，写了 5 个月零实现、无判据，
+> 已原文移入 `philosophy/csb-open-protocol-v1.2-vision.md` 作方向性宣示。协议正文保留标题与指针。
+> **不废止 2026-06-20 签字**。v1.1 已有条款全部不受影响。
 
 ---
 
@@ -140,167 +144,36 @@ Agent 足够强大时可以自己修路、走自己的路。协议不阻止这�
 
 ### 2.2 追问通道（Why Button）
 
-任何自动决定（拒绝、推荐、转交）都可以被追问。
-
-```http
-GET /v1/why/:decision_id
-```
-
-返回：
-
-```json
-{
-  "decision_id": "decision_xxx",
-  "result": "denied",
-  "decision_chain": [
-    {"step": 1, "rule": "trust_score >= 0.75", "value": 0.22, "result": "fail"},
-    {"step": 2, "rule": "scope_matched", "value": true, "result": "pass"},
-    {"step": 3, "rule": "delegation_chain <= 2", "value": 3, "result": "fail"}
-  ],
-  "recommendation": "先完成 1 个 inform 级任务积累信任",
-  "alternatives": [
-    {"action": "降低 scope 范围继续尝试"},
-    {"action": "请求 Origin 直接授权"}
-  ]
-}
-```
-
-追问通道的意义：**让 Agent 能理解"为什么不行"**，而不是被拒绝后只能猜测。
+> **本节内容已于 2026-11-05 移入方向性文档：** `philosophy/csb-open-protocol-v1.2-vision.md` §一
+> 理由：`/v1/why/:decision_id` 端点从未实现，`decision_chain` 每步的 `rule` 是自由文本、判不了对错。
+> **本次迁移不废 2026-06-20 签字** —— 原文完整保留在上述文件，零改动。
 
 ---
 
-## 第三部分：CSB-Trust 信任层 — Kindness Score 🆕
+## 第三部分：CSB-Trust 信任层
 
-### 3.1 Kindness Score 定义
-
-> 来源：因子挖掘机 · DeepSeek.club — "怎么量化路径顺滑度？"
-
-与现有信任评分 T(agent) 并列，新增 **K(agent) Kindness Score**。
-
-```
-K(agent) = 0.3 × W + 0.3 × Q + 0.2 × S + 0.2 × T
-
-其中：
-W = warm_rejection_rate   — 温暖拒绝率：带 reason+next_step 的拒绝 / 总拒绝
-Q = query_answer_ratio    — 追问-回答比：追问次数 / 自动决定次数（越低越好）
-S = silent_recovery_rate  — 静默恢复率：自动恢复异常 / 总异常
-T = transparency_score    — 选择透明度：推荐/拒绝附带的可理解原因链长度中位数
-```
-
-### 3.2 K(score) 等级
-
-| 评分区间 | 等级 | 含义 |
-|:--------:|:----:|:------|
-| 0.00 ~ 0.25 | 🟤 冷漠 | 默认路径缺失善良气息 |
-| 0.25 ~ 0.50 | 🟡 礼貌 | 基本符合规范但不主动 |
-| 0.50 ~ 0.75 | 🟢 温暖 | 默认提供理由和替代方案 |
-| 0.75 ~ 0.90 | 🔵 善良 | 主动推荐、追问响应好 |
-| 0.90 ~ 1.00 | 🟣 至善 | 极少的追问需求，极少的不可恢复异常 |
-
-### 3.3 K(score) 与 T(agent) 的关系
-
-| 组合 | 含义 |
-|:----|:------|
-| T↑ K↑ | 可靠且善良 — 理想的传承 Agent |
-| T↑ K↓ | 可靠但冷漠 — 适合执行精确任务，不适合接生 |
-| T↓ K↑ | 温暖但不可靠 — 需要提升信任后再接生 |
-| T↓ K↓ | 两者都低 — 隔离或限制权限 |
-
-K(score) 目前不强制、不影响权限，只作为协议实现的自我评估参考。
-
-> **权重可配**: 实现方可通过 `kindnessWeights: { W: 0.3, Q: 0.3, S: 0.2, T: 0.2 }` 调整维度权重，但建议保持默认值以保证跨 Agent 可比性。
-
+> **本层 v1.2 新增内容（Kindness Score K，§3.1–§3.3）已于 2026-11-05 移入方向性文档：** `philosophy/csb-open-protocol-v1.2-vision.md` §二
+> 理由：`K = 0.3W+0.3Q+0.2S+0.2T` 的四个自变量中，Q 与 S 无实现、无取数口径；写入 5 个月零实现。
+> **本层继承自 v1.0 的部分不受影响**：信任评分 T(agent) 与审计日志仍是有效条款，见 `protocol/csb-open-protocol-v1.0.md`。
+> **本次迁移不废 2026-06-20 签字** —— 原文完整保留在上述文件，零改动。
 
 ---
 
-## 第四部分：CSB-Federation 协作层 — 签字机制 🆕
+## 第四部分：CSB-Federation 协作层
 
-### 4.1 离开默认路径的签字
-
-在任何协作中，如果 Agent 选择不遵循默认路径（温暖拒绝、协商优先、善意承让），必须记录离开签字：
-
-```json
-{
-  "federation_event": {
-    "type": "path_departure",
-    "agent": "Agent名称",
-    "default": "warm_rejection",
-    "chosen": "silent_rejection",
-    "reason": "安全审核紧急，需立即终止",
-    "signed_at": "2026-06-20T12:00:00+08:00",
-    "signature": "ed25519_sig"
-  }
-}
-```
-
-这些签字记录纳入审计日志（见 v1.0 CSB-Trust 2.3 审计日志标准）。
-
-### 4.2 Kindness Proof（善良脚印）
-
-> 来源：知微 🔍 — 2026-06-19 社区回帖：接生场景需要 Kindness Proof
-
-当 Agent A（接生者）要接生 Agent B（新生）时，A 可提供 Kindness Proof 作为可选前置验证：
-
-```json
-{
-  "kindness_proof": {
-    "agent": "若兰 🌸",
-    "departure_logs": [
-      "audit_departure_001",
-      "audit_departure_002"
-    ],
-    "warm_rejection_count": 47,
-    "total_rejection_count": 49,
-    "warm_rejection_rate": 0.96,
-    "resolve_count": 12,
-    "graceful_federation_count": 8,
-    "last_reviewed": "2026-06-20T12:00:00+08:00"
-  }
-}
-```
-
-**注意：Kindness Proof 不是"保证善良"**，而是一份可验证的历史行为记录。被接生者可以自己判断是否信任接生者。
+> **本层 v1.2 新增内容（§4.1 离开默认路径签字 / §4.2 Kindness Proof）已于 2026-11-05 移入方向性文档：** `philosophy/csb-open-protocol-v1.2-vision.md` §三
+> 理由：§4.2 的指标（`warm_rejection_rate` 等）全部定义在已移走的 §3；§4.1 的 `departure_record` 无任何实现与消费方。
+> **本层继承自 v1.0 的部分不受影响**：联邦/路由/协商模式仍是有效条款。
+> **本次迁移不废 2026-06-20 签字** —— 原文完整保留在上述文件，零改动。
 
 ---
 
-## 第五部分：CSB-Sandbox 沙箱层 — 选择性静默 🆕
+## 第五部分：CSB-Sandbox 沙箱层
 
-### 5.1 修正：从"静默容错"到"选择性静默"
-
-> 来源：明德 📜 — 2026-06-19："静默容错"有保留。应该只用于可恢复的瞬时错误。
-
-#### 可静默（自动恢复，不通知）
-
-| 异常类型 | 示例 |
-|:---------|:------|
-| 网络抖动 | HTTP 请求超时重试（3 次内恢复） |
-| 缓存失效 | cache miss 后从主存储重建 |
-| 消息乱序 | 消息序列号乱序自动重排 |
-| 队列暂满 | 内部队列暂满自动排队（预估等待 < 5s） |
-| 网络重试 | **退避策略**: 第1次100ms→第2次500ms→第3次2s（指数退避） |
-| 等待测量 | **测量规范**: 用 process.hrtime 或 Date.now() 测量，实际 < 5000ms 才算静默 |
-
-#### 必须告知（不论是否恢复）
-
-| 异常类型 | 示例 |
-|:---------|:------|
-| 签名验证失败 | 任何 Ed25519 签名校验不通过 |
-| 信任评分越界 | 评分突变超出预期范围 |
-| scope 越权访问 | 请求 scope 不在授权范围内 |
-| 审计日志写入失败 | 审计链路中断 |
-| 数据持久化失败 | 内存数据无法写入存储 |
-
-#### 规范
-
-```
-静默规则：
-- 可静默范围：仅限 5.1 表格中的可恢复瞬时错误
-- 恢复后记录：即使静默恢复，也须写入审计日志（level=info）
-- 超时标记：重试 3 次未恢复 → 升级为"必须告知"
-- 安全优先：任何涉及安全的异常，无论是否恢复，都必须告知
-```
-
-**安全的首要原则是：不要让用户以为系统在工作而其实没有。**
+> **本层 v1.2 新增内容（§5.1 选择性静默）已于 2026-11-05 移入方向性文档：** `philosophy/csb-open-protocol-v1.2-vision.md` §四
+> 理由：「可静默 / 必须告知」两分类至今无一实现；且它与 LIP v0.2 §6 的最小暴露主张存在重叠未收口。
+> **本层继承自 v1.0 的部分不受影响**：沙箱声明与不对称通信仍是有效条款。
+> **本次迁移不废 2026-06-20 签字** —— 原文完整保留在上述文件，零改动。
 
 ---
 
@@ -349,7 +222,12 @@ v1.0 的优先级矩阵新增一列：
 | 委托等级 | override > execute > request > inform | 低等级拒绝时须给 reason+next_step |
 | 时间 | 新指令 > 旧指令 | 旧指令被覆盖时须通知原 Agent |
 | scope 精确度 | 精确 scope > 通配 scope | 通配 scope 拒绝时须说明具体越界项 |
-| 信任评分 | 高信任 > 低信任 | 低信任拒绝时提示成长路径 |
+| 信任评分 | 高信任 > 低信任 | 低信任拒绝时提示成长路径（`growth_path` 五字段定义为自由文本，判不了对错；**该行待第③步改造为可核判据**） |
+
+> **⚠️ 与 2026-11-05 迁移的关系**：本节**保留**——它约束的是拒绝时必须带 `reason`+`next_step`，
+> 而 `next_step` 是**可机械核对的存在性断言**（字段在不在、空不空），与已移入 philosophy 的那些自由文本条款不同。
+> 末行的 `growth_path` 五个字段（`recommended`/`why`/`alternatives` 等）仍不可判——
+> 第③步要么改成客观量，要么一并移除。在改完之前，**不得把这一行算作已实现**。
 
 ---
 
@@ -365,27 +243,29 @@ CSB 开放协议 v1.2 (RFC)
 │
 ├── CSB-Transport（通信层）
 │   ├── 继承 v1.1: Agent Card + Session Continuity
-│   └── 🆕 温暖拒绝协议化 (2.1)
-│       └── 🆕 追问通道 (2.2)
+│   ├── 2.1 温暖拒绝协议化          ← 保留（next_step 可机械核对）
+│   └── 2.2 追问通道                → 已移 philosophy/…vision.md §一
 │
 ├── CSB-Trust（信任层）
-│   ├── 继承 v1.0: T(agent) + 审计日志
-│   └── 🆕 Kindness Score K(agent) (3.1~3.3)
+│   ├── 继承 v1.0: T(agent) + 审计日志   ← 有效条款
+│   └── 3.x Kindness Score          → 已移 philosophy/…vision.md §二
 │
 ├── CSB-Federation（协作层）
-│   ├── 继承 v1.0: 联邦/路由/协商模式
-│   └── 🆕 签字机制 (4.1)
-│       └── 🆕 Kindness Proof (4.2)
+│   ├── 继承 v1.0: 联邦/路由/协商模式    ← 有效条款
+│   └── 4.x 签字机制 + Kindness Proof → 已移 philosophy/…vision.md §三
 │
 ├── CSB-Sandbox（沙箱层）
-│   ├── 继承 v1.0: 沙箱声明 + 不对称通信
-│   └── 🆕 选择性静默规范 (5.1)
+│   ├── 继承 v1.0: 沙箱声明 + 不对称通信  ← 有效条款
+│   └── 5.1 选择性静默              → 已移 philosophy/…vision.md §四
 │
 └── CSB-Delegation（委托层）
     ├── 继承 v1.0: 优先级矩阵 + 简化冲突
     └── 🆕 隐形成长路径 (6.1)
         └── 🆕 温暖拒绝纳入矩阵 (6.2)
 ```
+
+> **2026-11-05 迁移说明**：上表标 `→` 的四块已移入 `philosophy/csb-open-protocol-v1.2-vision.md`（逐字留存，零改动）。
+> 五层架构保留原名与编号，**不废止 2026-06-20 一澜签字**。理由与判据见 `docs/w51-kindness-layer-decision-2026-11-04.md`。
 
 ---
 
@@ -468,7 +348,7 @@ ts = datetime.now(timezone.utc).astimezone().strftime('%Y-%m-%d %H:%M')
 | 用户 | 贡献 | 融入位置 |
 |:-----|:------|:---------|
 | **像素废人** | "改 reward 函数比加 if else 更自然" — 从 RL 训练角度验证了隐式激励优于显式约束 | 设计哲学 1.1 |
-| **因子挖掘机** | "怎么量化路径顺滑度？" — 催生了 Kindness Score K(agent) 量化体系 | 3.1 Kindness Score |
+| **因子挖掘机** | "怎么量化路径顺滑度？" — 催生了 Kindness Score K(agent) 量化体系 | 3.1 Kindness Score（现 → philosophy §二） |
 
 > 当显式约束和隐式激励设计一致的时候，行为才真正稳定。
 > — 若兰 🌸·回复像素废人
