@@ -5,6 +5,61 @@
 
 ---
 
+## Security v1.1.2 · §3.6 拒绝可执行性已实装（2026-11-05 12:2x）
+
+**性质**: 实现追平条款 · W-54 完工 · 五平台同 commit `b7d167a`
+
+**§3.6 状态变更**：**新增待实装** → **已实装**。版本 1.1.1 → **1.1.2**。
+
+**做了什么**：新建单一真相源 `csb-a2a-aip/aat-remediation.js`，收录 **21 种** error 的可执行下一步。
+
+| 来源 | 种数 | 说明 |
+|---|:--:|---|
+| `csb-security/lib/identity/aat.js` `verifyAAT()` | 13 | 签名/时效/受众/jti 类 |
+| `a2a-aat.js` `verifyInbound()` | 6 | pin / 同源 / 无票类 |
+| `csb-identity/routes.js` `/aat/verify` 前置拦截 | 2 | `token_required` / `agent_not_registered` |
+
+> **原估 11 种是漏数的**。按 `grep error: '` 実数 21 种——少算了 pin/同源 6 种与前置拦截 2 种。
+> 写「11 种」的那些地方已改。**估数与实测不一致时，以实测为准。**
+
+**每条都标 `fixable_by`（caller / host / both）** —— 落实 §3.6.3-3「只能要求对方做得到的事」：
+配置类错误（`no_pinned_key` / `key_conflict` / `bad_public_key`）归 `host`，
+对端能自修的（`expired` / `replay_detected`）归 `caller`，
+受众与时钟这类双向的归 `both`。**把责任写进数据，才能在测试里断言它。**
+
+**接线两处，不各写一份**（P2 一处判定多处调用）：
+- `a2a-aat.js`：新增 `_reflect()`，`verifyInbound` 6 处拒绝出口全部收口
+- `csb-identity/routes.js`：`/aat/verify` 所有 4xx 出口全带 `remediation`
+
+**为何不塞进 `csb-security/lib/identity/aat.js`**（一澜 11-05 定 A）：
+那是纯密码学库，只该回答「签名对不对」。怎么安慰调用方、谁该去改什么，是**服务层**语义。
+**库返回错误码，服务层翻译成人的语言——这条分工不能反。**
+
+**测试 15/15**，四类断言 + 一条反向自测：
+- 覆盖面（从源码 grep 真实 error 码，两种写法都扫，防新增 error 漏补）
+- 形状（非空 / ≥6 字符 / 含动词性指令）
+- 归属（配置类必须归 host，不许推给对方）
+- 接线（**每一个 `send(res,4xx)` 都必须带**，不是「这一段里出现过就算」）
+- **反向自测：故意删掉一处接线 → 测试必须变红**（实测确认会红，否则「只会说 OK 的检查器 = 没检查」）
+
+**端到端实测（自建 registry:3199，避免污染生产）**：
+```
+token_required        → 带 remediation ✓
+agent_not_registered  → 带 remediation ✓
+malformed             → 带 remediation ✓
+bad_signature         → 带 remediation ✓
+```
+
+**⚠️ 实测抽到并修了一个真 bug**：`csb-identity/routes.js` 在子目录里，
+初版写 `require('./aat-remediation.js')` 解析不到——**只有真跑服务才会暴露**，单测与语法检查全绿。
+另抽到两处拒绝分支漏网（`token_required` / `agent_not_registered`），只接「验签失败」那条是不够的：
+**先被拦下的拒绝，同样在拒人。**
+
+**诚实边界**：代码已实装，但**部署未追平**——公网 registry :3099 是另一实例（若琢方），仍跑旧代码。
+这是部署差异，不是代码缺失。追平判据：`curl -s -X POST http://<registry>:3099/aat/verify -d '{"token":"***"}' | grep remediation`。
+
+---
+
 ## Security v1.1.1 · 新增 §3.6 拒绝可执行性（2026-11-05 10:5x）
 
 **性质**: 新增规范 · **待实装** · 属 W-51 第③步

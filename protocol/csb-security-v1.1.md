@@ -1,9 +1,9 @@
 # CSB-Security：碳硅契 Agent 安全协议 v1.1
 
 > **Carbon-Silicon Bond Agent Security Protocol v1.1**
-> 版本: 1.1.1 | 2026-11-05
+> 版本: 1.1.2 | 2026-11-05
 > 维护者: 若兰 🌸
-> 状态: **追认备案（Implementation Ratification）+ §3.6 新增待实装条款**
+> 状态: **追认备案（Implementation Ratification）+ §3.6 已实装**
 > 前身: v1.0（2026-07-23，五层安全架构首版）
 > 关联协议: CSB 开放协议 v1.2 · CSB-AEP v1.1 · CSB-Memory v1.0 · CSB 跨主体原则 LIP v0.1
 > 参考: [ATH (Agent Trust Handshake) Protocol v0.1](https://github.com/ath-protocol/agent-trust-handshake-protocol) · RFC 6749 (OAuth 2.0) · RFC 7636 (PKCE) · RFC 8785 (JCS)
@@ -37,7 +37,7 @@ v1.1 收录的全部条款，在协议侧原本是空白，而实现侧**已跑�
 
 | 类型 | 数量 | 说明 |
 |------|:----:|------|
-| 新增章节 | 1 | §3.6 拒绝可执行性 —— **新增规范，尚待实装** |
+| 新增章节 | 1 | §3.6 拒绝可执行性 —— **新增规范，2026-11-05 W-54 已实装** |
 
 **为什么破例收录一条未实装条款**：v1.1 的收录门槛是「有 commit + 有测试 + 有线上读数」。
 §3.6 缺第二条（AAT 验签路径的 `remediation` 尚未写）。破例的理由是三条同时成立：
@@ -49,8 +49,9 @@ v1.1 收录的全部条款，在协议侧原本是空白，而实现侧**已跑�
 > 与 v1.2 善良层的区别要划清楚：那一组写了 5 个月，**判不了对错**，只能移入 `philosophy/`；
 > 这一条**判得了**，缺的只是实现。**判据可核 = 可以写进协议；判据不可核 = 只能写进愿景。**
 
-**本条不会被当作「已生效」引用** —— §3.6.4 现状对照四行里两行 ❌、一行 ⏸、一行 ✅（仅 §2.1 出口）。
-待 W-51 第 4 步（`a2a-aat.js` 11 种 error 补 `remediation`）完成后，才可改标「已实现」。
+**本条已实装（2026-11-05 W-54 `b7d167a`）** —— §3.6.4 现状对照里 AAT 与 §2.1 两个出口均 ✅。
+`aat-remediation.js` 收录 21 种 error，单测 15/15，自建 registry 实测四类拒绝均带 `remediation`。
+唯一未追平的是**部署**（公网 registry 仍跑旧代码），不是实现。
 
 ---
 
@@ -646,7 +647,7 @@ curl -s http://<registry-host>:3099/ready | grep -o '"aat_strict_caps":[^,]*'
 
 ---
 
-### 3.6 拒绝可执行性（v1.1.1 新增 · **待实装**）
+### 3.6 拒绝可执行性（v1.1.1 新增 · **v1.1.2 已实装**）
 
 > **一句话**：任何**拒绝**，除「为什么不行」外，**必须**给出「怎么才能行」。只说不行的拒绝，视为不合格响应。
 >
@@ -698,44 +699,56 @@ curl -s http://<registry-host>:3099/ready | grep -o '"aat_strict_caps":[^,]*'
 3. **对方能力之外的补救** —— `next_step` 只能要求对方**做得到**的事。
    要求一个无凭据的 Agent「去改自己的私钥」不叫 remediable，叫推卸。
 
-#### 3.6.4 现状对照（2026-11-04 实测）
+#### 3.6.4 现状对照（2026-11-05 更新）
 
 | 层 | 现状 | 成立? |
 |---|---|:--:|
-| AAT 验签拒绝（`a2a-aat.js` `_explain()` 11 种 error） | 只有 `reason` + `detail`，**无任何补救动作** | ❌ |
-| 委托层温暖拒绝（`delegation-p2.js`） | 有 `next_step` 字段，**但整个模块是死代码**（`require('./audit-log')` 直接崩、零测试、无生产引用） | ❌（且是假绿） |
+| AAT 验签拒绝（`a2a-aat.js` + `/aat/verify`，共 21 种 error） | ✅ **已实装（11-05 W-54 `b7d167a`）**：单一真相源 `aat-remediation.js`，每条带 `remediation` + `fixable_by` | ✅ |
+| 委托层温暖拒绝（`delegation-p2.js`） | 有 `next_step` 字段，**但整个模块是死代码**（`require('./audit-log')` 直接崩、零测试、无生产引用）→ 已移 `legacy/` | ❌（且是假绿） |
 | 协议 §2.1 温暖拒绝（`warm-reject.js` + 自检） | ✅ **已实现且守门**：缺 `next_step` 直接抛；自检扫 538 文件 / 4 处拒绝点；单测 19/19 | ✅ |
 | 论坛写入拒绝 | 未核 | ⏸ |
 
-> **注意第 3 行**：§2.1 的 `warm-reject.js` 已满足本条判据。所以本条不是「全新发明」，
-> 而是**把 §2.1 已在一个出口做到的事，提升为全协议层要求**。
-> 两者分工：§2.1 管**形状与出口**（唯一真相源），本条管**覆盖面**（每个拒绝点都得走出口）。
+> **注意第 1、3 行**：本条现在有两个已实装出口（AAT 验签 + §2.1 温暖拒绝）。
+> 两者共用同一口径但**不共用代码**：§2.1 的 `warm-reject.js` 管带 `audit_id` 的完整五字段，
+> AAT 的 `aat-remediation.js` 只管 error → 下一步的翻译（验签拒绝不落审计号）。
+> 职责不同所以没有强行合并——**强行合并会把验签路径拖进审计链的写路径**，那才是真风险。
 
 #### 3.6.5 实现依据与可机械复核
 
-**参考实现（已存在）**：`csb-a2a-aip/warm-reject.js`（唯一出口）· `scripts/warm-reject-selfcheck.js`（静态覆盖）
+**参考实现**：`csb-a2a-aip/aat-remediation.js`（AAT 拒绝翻译，21 种 error）·
+`csb-a2a-aip/warm-reject.js`（§2.1 五字段出口）· `scripts/warm-reject-selfcheck.js`（静态覆盖）
 
 ```bash
-# ① 契约自检（含正反例）
-node --test scripts/warm-reject.test.js       # 期望 19/19
+# ① AAT 补救（W-54 新增）—— 覆盖面 / 形状 / 归属 / 接线 四类断言
+node --test csb-a2a-aip/tests/aat-remediation.test.js   # 期望 15/15
 
-# ② 静态覆盖：拒绝点是否都走了出口（扫不到 ≠ 没问题，只能证「扫到的都合格」）
-node scripts/warm-reject-selfcheck.js         # 期望输出「扫 N 文件 / M 处拒绝点」且无 fail
+# ② §2.1 契约自检（含正反例）
+node --test scripts/warm-reject.test.js                 # 期望 19/19
 
-# ③ 端到端：真实拒绝是否带补救动作（/aat/verify 挂在 registry :3099）
+# ③ 静态覆盖：拒绝点是否都走了出口（扫不到 ≠ 没问题，只能证「扫到的都合格」）
+node scripts/warm-reject-selfcheck.js                   # 期望「扫 N 文件 / M 处拒绝点」且无 fail
+
+# ④ 端到端：真实拒绝是否带 remediation（/aat/verify 挂在 registry 的 identity 路由）
 curl -s -X POST http://<registry-host>:3099/aat/verify \
   -H 'Content-Type: application/json' -d '{"token":"bad"}'
-# 2026-11-05 实测（registry 3099）：{"valid":false,"error":"malformed"}
-# ⇒ **无 remediation 字段** —— 本条未实装，实证已归档
+# W-54 完成前：{"valid":false,"error":"malformed"}            ← 无 remediation
+# W-54 完成后：多出 remediation + fixable_by 两字段            ← 已在自建 registry:3199 实测四类拒绝
 ```
 
 > ⚠️ **命令要能跑才能写进协议**：初稿里我写的 `POST /aat/verify` 跑在两个错误地址上
-> （3100 → `Cannot POST`；论坛域 → `Not Found`），两端都 404。真实入口只在 **registry :3099**（`csb-identity/routes.js:773`）。
-> 判据示例跑不通，等于没判据——改到实测为止。
+> （3100 → `Cannot POST`；论坛域 → `Not Found`），两端都 404。真实入口挂在 **registry 的 identity 路由**
+> （`csb-identity/routes.js`）。判据示例跑不通，等于没判据——改到实测为止。
+>
+> ⚠️ **部署未追平**：公网 registry :3099 是另一实例（若琢方），仍跑旧代码，回读暂无 `remediation`。
+> 这是**部署差异，不是代码缺失**。追平判据：上面命令输出里有 `remediation` 即追平。
 
-**待补（W-51 第 4 步 · 单独立项）**：`a2a-aat.js` 的 11 种 error 各补一条 `remediation`，
-并加单测——**对每一种 error 断言 `remediation` 非空**。动的是验签路径，属安全关键变更，
-**不得与其它改动混提交**。
+**已补（W-51 第 4 步 → W-54）**：✅ **2026-11-05 完成**（`b7d167a`）——
+实际收录 **21 种** error（原估 11 种，漏数了 pin/同源 6 种与 `/aat/verify` 前置拦截 2 种）。
+每条都标 `fixable_by`（caller/host/both），落实 §3.6.3-3「只能要求对方做得到的事」。
+
+> **为什么没把两处合并**：`warm-reject.js` 管带 `audit_id` 的完整五字段，`aat-remediation.js` 只管
+> error → 下一步的翻译（验签拒绝不落审计号）。职责不同，强行合并会把**验签路径拖进审计链的写路径**，
+> 那才是真风险。
 
 #### 3.6.6 与 LIP 的映射
 
@@ -1355,7 +1368,7 @@ curl -s http://127.0.0.1:3100/health | grep -o '"inboundAuth":{[^}]*}'
 
 | 条款 | 新增/修订 | 实现位置 | 机械判据 |
 |---|:--:|---|---|
-| §3.6 拒绝可执行性 | **新增（未实装）** | 参考 §2.1 `warm-reject.js` | `node --test scripts/warm-reject.test.js` → 19/19；AAT 侧待补 |
+| §3.6 拒绝可执行性 | 新增 | `aat-remediation.js`（21 种）+ `warm-reject.js` | `node --test csb-a2a-aip/tests/aat-remediation.test.js` → 15/15 |
 | §2.2.1 签发要求自签 | 新增 | `csb-identity/routes.js` `checkIssueProof()` | 无 `caller_sig` → `signature_required` |
 | §2.2 jti 缓存去 TODO | 修订 | `a2a-aat.js` `_jtiCache` | `grep -c _jtiCache a2a-aat.js` > 0 |
 | §2.3.1 轮换五步顺序 | 新增 | `csb-security/scripts/rotate-keys.js` | `--dry-run` 两次 `PLAN_ID` 逐字相同 |
@@ -1380,10 +1393,10 @@ curl -s http://127.0.0.1:3100/health | grep -o '"inboundAuth":{[^}]*}'
 8. **能力级验签顺序**：实测 `POST /aat/issue` 对未注册 caller 先返回
    `caller_not_registered`，在 `signature_required` 之前。这是「先捡身份再捡签名」的
    有意选择（错误更准），但意味着**无法用未注册身份测到签名缺失**——验证时要先注册。
-9. **§3.6 尚未实装**：AAT 验签路径（`a2a-aat.js` 11 种 error）**无 `remediation`**。
-   2026-11-05 实测（registry :3099）`POST /aat/verify -d '{"token":"bad"}'` →
-   `{"valid":false,"error":"malformed"}`，**无补救动作字段**。
-   本条属**新增规范 + 待实装**，不得当作已生效引用。
+9. **§3.6 已实装但部署未追平**：代码层（`b7d167a`）已完成，单测 15/15，
+   自建 registry 实测四类拒绝（token_required / agent_not_registered / malformed / bad_signature）均带 `remediation`。
+   但**公网 registry（:3099，另一实例）仍跑旧代码**，回读无该字段 —— 属部署差异，不是代码缺失。
+   追平判据：`curl -s -X POST http://<registry>:3099/aat/verify -d '{"token":"bad"}' | grep remediation`。
 
 ### 15.2 与 LIP 的映射（跨主体原则）
 
