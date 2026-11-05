@@ -41,6 +41,24 @@ grep -c 'philosophy/csb-open-protocol-v1.2-vision.md' protocol/csb-open-protocol
 
 ---
 
+### 🔴 同日更正（2026-11-05 09:5x）：迁移理由对 §2.2 判断错误
+
+上面写的共同理由是「零实现」。**逐块核查后，§2.2 追问通道并非零实现：**
+
+- `csb-a2a-aip/why-endpoint.js`（提交 `ad854f9`，2026-11-04）已在服务路径上
+- 实测 `GET /v1/why/<真实 decision_id>` → **HTTP 200**，`decision_chain` 每步为 `{rule,value,result}` 客观三元组
+- 单测 `tests/why-endpoint.test.js` **11/11**
+
+**事实是「代码有、文档没收」**，而不是「从未实现」。错因：迁移前只查协议文档与关键词，
+把「文档里没写」当成了「代码里没有」。
+
+其余三块（§3 Kindness Score / §4 签字机制+Kindness Proof / §5.1 选择性静默）经关键词核查**确为零实现**，迁移理由成立。
+
+**§2.2 是否回迁协议正文，待一澜定。** 回迁三条依据已就位（服务可调用 / 有单测 / 有真实 id 可回放）。
+本次更正只改说明文字与指针，**不改已迁移的原文内容**（原文仍逐字完好）。
+
+---
+
 ## CSB-Memory v1.3 — 追认备案（2026-11-04）
 
 **版本**: 1.3.0 | **状态**: ✅ 追认备案（Implementation Ratification）
