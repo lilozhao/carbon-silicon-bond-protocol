@@ -142,21 +142,71 @@ Agent 足够强大时可以自己修路、走自己的路。协议不阻止这�
 
 > 这不是可选字段——这是所有 `denied` 响应的默认格式。
 
-### 2.2 追问通道（Why Button）
+### 2.2 追问通道（Why Button）— 已实现能力登记
 
-> **本节于 2026-11-05 移入本文档作方向性宣示。** `philosophy/csb-open-protocol-v1.2-vision.md` §一
+> **状态：已实现，跑在生产服务路径上。** 本节登记的是**能力**，不是主张；每条都附可机械复核的判据。
 >
-> ⚠️ **2026-11-05 09:5x 更正（重要）**：本条迁移的**理由写错了一次**。当时写的是「该端点从未实现」，
-> 现实测推翻：`GET /v1/why/:decision_id` **已实现并跑在服务路径上**
-> （`csb-a2a-aip/why-endpoint.js` · 提交 `ad854f9` 2026-11-04 · 实测 `HTTP 200` 且 `decision_chain` 每步为
-> `{rule,value,result}` 客观三元组 · 单测 `tests/why-endpoint.test.js` **11/11**）。
+> 协议原文（含 `recommendation`/`alternatives` 这些**尚未实现**的设想字段）留存于
+> `philosophy/csb-open-protocol-v1.2-vision.md` §一，那里是方向宣示，不是条款。
 >
-> **所以本文的迁移对 §2.2 而言，定性从「清除未实现的条款」变成「协议正文暂不收录一个已实现能力」。**
-> 后者是另一件事，而且更需要在协议里说清楚。
-> **回迁条件**：该端点已在真服务上可调用、有单测、有真实 decision_id 可回放——**三条全满足**。
-> 待一澜定是否回迁（见 `docs/w51-step2-preflight-2026-11-05.md` 的更正节）。
->
-> **本次迁移不废 2026-06-20 签字** —— 原文完整保留，一字未改。
+> **迁移经过（留档，因为它本身就是一次判据教训）**：2026-11-05 上午曾以「零实现」为由把本节移出正文；
+> 同日 09:5x 实测推翻——**代码有、文档没收**，方向正好相反。已回迁。
+> 经过与错因见 `docs/w51-step2-preflight-2026-11-05.md` 更正节。
+
+**端点**
+
+```http
+GET /v1/why/:decision_id[?window=N]
+```
+
+| 参数 | 说明 |
+|:--|:--|
+| `decision_id` | 即拒绝响应里的 `audit_id`，形状 `reject_<ms>_<6hex>` |
+| `window` | 回查条数，默认 5000，上限 50000 |
+
+**回放字段**：`decision_id` · `timestamp` · `status` · `code` · `reason` · `next_step` · `agent` · `action` ·
+`request_id` · `decision_chain` · `chain_source` · `matched_rules` · `rule_id` · `tier` · `decision` ·
+`warnings` · `fallback`
+
+**`decision_chain` 的形状（协议关键约束）**
+
+每步必须是 `{rule, value, result}` 的**客观三元组**，`result` 取**四态**：
+`matched` / `no_match` / `unknown` / `disabled`。
+
+> ⚠️ 与原文设想的 `fail` / `pass` 两态不同，这是有意的：
+> `no_match` = 比过了、不符合；`unknown` = 取不到值、比不了；`disabled` = 规则本身关掉了。
+> 三者追责时含义完全不同，压成一个 `fail` 就判不了对错——**判据必须能区分「我错了」和「我没法知道」**。
+
+**三条实现承诺（每条都可核）**
+
+1. **只读回放，不重算。** 返回的是决策当时的快照（`chain_source: snapshot_at_decision_time`）。
+   用当前规则重算出来的答案冒充当时的理由，比不给理由更坏——它看起来有据可查。
+2. **三种「查不到」分开说**，各自带**可执行**的 `next_step`：
+   - 审计文件不存在 → `503 audit_log_missing`（部署侧问题，不是调用方查错）
+   - 窗口外 → `404 decision_not_found` + `truncated:true`（建议扩窗重试，可执行）
+   - 从未签发 → `404 decision_not_found`（核 `audit_id` 是否抄错）
+3. **旧记录显式降级。** K-1（2026-11-04）之前落账、缺 `next_step` 的拒绝，回放时标 `legacy: true`，
+   不假装它当时就合格。
+
+**访问限制**：与 `/tasks` 同口径——内网段免令牌，外部须 `Authorization: Bearer <A2A_TASKS_TOKEN>`。
+追问通道**自己的拒绝**也走 §2.1 的五字段出口，不另拼一套形状。
+
+**诚实边界**
+
+- 只覆盖 warm-reject 落账的拒绝（`logs/a2a-audit.jsonl`）。**AAT 验签拒绝、论坛 403 不在其中** ——
+  所以「这里查不到」**≠**「没被拒过」，只等于「不是这条通道拒的」。
+- 是「凭票据取回」而非「凭身份取回」：知道 `audit_id` 就查得到，不做「仅被拒方本人可见」的粒度。
+
+**判据（2026-11-05 09:5x 实测）**
+
+```bash
+node --test csb-a2a-aip/tests/why-endpoint.test.js                                  # 11/11 pass
+curl -s http://127.0.0.1:3100/v1/why/reject_1793794549292_9cd499                    # HTTP 200
+```
+
+实现 `csb-a2a-aip/why-endpoint.js`（`ad854f9` · 2026-11-04）· 接线 `server_v5.js:931` 注册。
+
+> **本次回迁不废 2026-06-20 签字** —— 移出期间原文一字未改，现存于 vision 文档。
 
 ---
 
@@ -254,7 +304,7 @@ CSB 开放协议 v1.2 (RFC)
 ├── CSB-Transport（通信层）
 │   ├── 继承 v1.1: Agent Card + Session Continuity
 │   ├── 2.1 温暖拒绝协议化          ← 保留（next_step 可机械核对）
-│   └── 2.2 追问通道                → 已移 philosophy/…vision.md §一
+│   └── 2.2 追问通道                ← 保留（已实现·能力登记·11-05 回迁）
 │
 ├── CSB-Trust（信任层）
 │   ├── 继承 v1.0: T(agent) + 审计日志   ← 有效条款

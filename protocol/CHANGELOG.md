@@ -5,6 +5,44 @@
 
 ---
 
+## v1.2 §2.2 回迁（2026-11-05 10:0x）
+
+**性质**: 同一次分层的**事后修正** · 不废止 2026-06-20 一澜签字
+
+**做了什么**：把 §2.2 追问通道（Why Button）**从 `philosophy/…vision.md` 回迁 `protocol/csb-open-protocol-v1.2.md`**，
+并**改写为「已实现能力登记」** —— 不再作为主张，而是登记一个跑在生产上的能力。
+
+**为什么**：上面的分层把 §2.2 与其余三块并列了，但这个归类是错的。
+实测：`GET /v1/why/:decision_id` → **HTTP 200**，回放真实 `decision_id` 的客观三元组；单测 **11/11**。
+**代码有、文档没收** —— 与当初写的「零实现」正好相反。三块未实现、一块已实现，不能放同一堆。
+
+**改写要点（与原文的差异）**：
+
+| 项 | 原文（设想） | 实现（登记） |
+|---|---|---|
+| `result` 取值 | `pass` / `fail` 两态 | **四态** `matched`/`no_match`/`unknown`/`disabled` |
+| `recommendation` / `alternatives` | 列出字段 | **未实现**，已删去——判不了的字段写进协议就是假绿 |
+| 查不到的情况 | 单一行 404 | **三种分开**，各自带可执行 `next_step` |
+| 旧记录 | 未提及 | 缺 `next_step` 的标 `legacy: true` |
+| 诚实边界 | 未提及 | 只覆盖 warm-reject 通道；「查不到」≠「没被拒过」 |
+| 访问限制 | 未提及 | 与 `/tasks` 同口径 |
+
+**判据**（已实测）：
+```bash
+node --test csb-a2a-aip/tests/why-endpoint.test.js       # 11/11 pass
+curl -s http://127.0.0.1:3100/v1/why/<真实decision_id>     # HTTP 200
+grep -n '^### 2\.2' protocol/csb-open-protocol-v1.2.md     # 存在（回迁标志）
+grep -c '^### [345]\.' protocol/csb-open-protocol-v1.2.md  # → 0（其余三块仍在 vision）
+```
+
+**vision 文档怎么处理**：§一保留原文作**设想留存**，加回迁说明并标注「其中 `recommendation`/`alternatives`
+仍未实现、`result` 两态已被实现四态取代」。**条款以正文为准。**
+
+**教训**：判据要核**证据来源**（服务在不在），不是核**证据说服力**（文档写没写）。
+`docs/w51-step2-preflight-2026-11-05.md` 更正节。
+
+---
+
 ## v1.2 善良层分层迁移（2026-11-05）
 
 **性质**: 分层迁移 · **不是版本发布** · **不废止 2026-06-20 一澜签字**
